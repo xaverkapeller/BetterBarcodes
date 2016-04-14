@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="barcode_view_swipe_instructions">Swipe left or right to switch between barcodes.</string>
+    <string name="barcode_name_aztec">Aztec</string>
+    <string name="barcode_name_codabar">Codabar</string>
+    <string name="barcode_name_code_128">Code 128</string>
+    <string name="barcode_name_code_39">Code 39</string>
+    <string name="barcode_name_code_93">Code 93</string>
+    <string name="barcode_name_data_matrix">Data Matrix</string>
+    <string name="barcode_name_ean_13">EAN-13</string>
+    <string name="barcode_name_ean_8">EAN-8</string>
+    <string name="barcode_name_itf">Interleaved 2 of 5</string>
+    <string name="barcode_name_maxi_code">MaxiCode</string>
+    <string name="barcode_name_pdf_417">PDF417</string>
+    <string name="barcode_name_qr_code">QR Code</string>
+    <string name="barcode_name_rss_14">RSS-14</string>
+    <string name="barcode_name_rss_expanded">RSS-Expanded</string>
+    <string name="barcode_name_upc_a">UPC-A</string>
+    <string name="barcode_name_upc_ean_extension">UPC-EAN-Extension</string>
+    <string name="barcode_name_upc_e">UPC-E</string>
+</resources>

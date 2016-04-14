@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="format" format="string">
+        <flag name="qr_code" value="0x00001"/>
+        <flag name="code128" value="0x00002"/>
+        <flag name="aztec" value="0x00004"/>
+        <flag name="codabar" value="0x00008"/>
+        <flag name="code39" value="0x00010"/>
+        <flag name="code93" value="0x00020"/>
+        <flag name="data_matrix" value="0x00040"/>
+        <flag name="ean8" value="0x00080"/>
+        <flag name="ean13" value="0x00100"/>
+        <flag name="itf" value="0x00200"/>
+        <flag name="maxicode" value="0x00400"/>
+        <flag name="pdf417" value="0x00800"/>
+        <flag name="rss14" value="0x01000"/>
+        <flag name="rss_expanded" value="0x02000"/>
+        <flag name="upc_a" value="0x04000"/>
+        <flag name="upc_e" value="0x08000"/>
+        <flag name="upc_ean_extension" value="0x10000"/>
+    </attr>
+
+    <declare-styleable name="BarcodeView">
+        <attr name="format"/>
+        <attr name="token" format="string"/>
+    </declare-styleable>
+
+    <declare-styleable name="BarcodeReaderView">
+        <attr name="format"/>
+    </declare-styleable>
+
+</resources>
