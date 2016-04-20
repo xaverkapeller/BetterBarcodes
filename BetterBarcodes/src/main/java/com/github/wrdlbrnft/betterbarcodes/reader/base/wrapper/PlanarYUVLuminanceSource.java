@@ -4,7 +4,7 @@ import com.google.zxing.LuminanceSource;
 
 class PlanarYUVLuminanceSource extends LuminanceSource {
 
-    public static PlanarYUVLuminanceSource fromRotate(byte[] data, int width, int height) {
+    public static PlanarYUVLuminanceSource fromPortrait(byte[] data, int width, int height) {
         final byte[] result = new byte[data.length];
         for (int column = 0; column < width; column++) {
             for (int row = 0; row < height; row++) {
@@ -15,9 +15,14 @@ class PlanarYUVLuminanceSource extends LuminanceSource {
         return new PlanarYUVLuminanceSource(result, height, width);
     }
 
+    public static PlanarYUVLuminanceSource fromLandscape(byte[] data, int width, int height) {
+        //noinspection SuspiciousNameCombination
+        return new PlanarYUVLuminanceSource(data, width, height);
+    }
+
     private final byte[] mYuvData;
 
-    public PlanarYUVLuminanceSource(byte[] yuvData, int width, int height) {
+    private PlanarYUVLuminanceSource(byte[] yuvData, int width, int height) {
         super(width, height);
 
         mYuvData = yuvData;

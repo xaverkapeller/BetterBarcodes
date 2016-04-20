@@ -14,6 +14,10 @@ android {
         targetSdkVersion 23
     }
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -27,5 +31,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:support-v4:23.3.0’
+    compile 'com.android.support:support-v4:23.3.0'
+    compile 'com.google.zxing:core:3.2.1'
 }

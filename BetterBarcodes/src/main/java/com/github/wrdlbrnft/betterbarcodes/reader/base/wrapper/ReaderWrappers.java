@@ -1,5 +1,6 @@
 package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 
@@ -17,12 +18,23 @@ import java.util.Map;
  */
 public class ReaderWrappers {
 
-    public static ReaderWrapper forFormat(@BarcodeFormat int... format) {
+    public static ReaderWrapper forFormat(Context context, @BarcodeFormat int... format) {
+        final MultiFormatReader reader = createZXingBarcodeReader(format);
+        final int orientation = getOrientation(context);
+        return new SimpleDecodeReaderWrapper(orientation, reader);
+    }
+
+    private static int getOrientation(Context context) {
+        return context.getResources().getConfiguration().orientation;
+    }
+
+    @NonNull
+    private static MultiFormatReader createZXingBarcodeReader(@BarcodeFormat int[] format) {
         final MultiFormatReader reader = new MultiFormatReader();
         final Map<DecodeHintType, Object> hints = new ArrayMap<>();
         hints.put(DecodeHintType.POSSIBLE_FORMATS, toZXingBarcodeFormatList(format));
         reader.setHints(hints);
-        return new SimpleDecodeReaderWrapper(reader);
+        return reader;
     }
 
     @NonNull

@@ -1,5 +1,7 @@
 package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper;
 
+import android.content.res.Configuration;
+
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
@@ -13,15 +15,19 @@ import com.google.zxing.common.HybridBinarizer;
  */
 abstract class BaseReaderWrapper implements ReaderWrapper {
 
+    private final int mOrientation;
     private final Reader mReader;
 
-    protected BaseReaderWrapper(Reader reader) {
+    protected BaseReaderWrapper(int orientation, Reader reader) {
+        mOrientation = orientation;
         mReader = reader;
     }
 
     @Override
     public String decode(byte[] data, int width, int height) throws NotFoundException, ChecksumException, FormatException {
-        final PlanarYUVLuminanceSource luminanceSource = PlanarYUVLuminanceSource.fromRotate(data, width, height);
+        final PlanarYUVLuminanceSource luminanceSource = mOrientation == Configuration.ORIENTATION_PORTRAIT
+                ? PlanarYUVLuminanceSource.fromPortrait(data, width, height)
+                : PlanarYUVLuminanceSource.fromLandscape(data, width, height);
         final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
         final Result result = performDecode(mReader, bitmap);
         return result.getText();

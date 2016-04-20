@@ -105,4 +105,14 @@ public class BarcodeReaderView extends FrameLayout {
     public void stopPreview() {
         mBarcodeReader.stopPreview();
     }
+
+    public void start() {
+        mBarcodeReader.startPreview();
+        mBarcodeReader.startScanning();
+    }
+
+    public void stop() {
+        mBarcodeReader.stopPreview();
+        mBarcodeReader.stopScanning();
+    }
 }

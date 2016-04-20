@@ -59,12 +59,13 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private Callback mCallback = DUMMY_READER_CALLBACK;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
-    private ReaderWrapper mReader = ReaderWrappers.forFormat(BarcodeFormat.QR_CODE);
+    private ReaderWrapper mReader;
 
     @State
     private int mState = STATE_STOPPED;
 
     protected BaseBarcodeReader(Context context) {
+        mReader = ReaderWrappers.forFormat(context, BarcodeFormat.QR_CODE);
         mContext = context;
     }
 
@@ -209,7 +210,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
 
     @Override
     public void setFormat(@BarcodeFormat int... format) {
-        mReader = ReaderWrappers.forFormat(format);
+        mReader = ReaderWrappers.forFormat(mContext, format);
     }
 
     public ReaderWrapper getCurrentReader() {

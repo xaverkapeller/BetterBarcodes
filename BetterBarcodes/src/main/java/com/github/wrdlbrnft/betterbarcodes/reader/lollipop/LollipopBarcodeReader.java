@@ -31,18 +31,12 @@ import android.view.WindowManager;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrapper;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
-import com.github.wrdlbrnft.proguardannotations.KeepClass;
-import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
-import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +54,8 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
     private static final int IMAGE_FORMAT = ImageFormat.YUV_420_888;
     private static final String LOG_TAG = LollipopBarcodeReader.class.getSimpleName();
+
+    private static final int MAX_WIDTH = 1024;
 
     private final CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
 
@@ -201,7 +197,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
     private final CameraManager mCameraManager;
     private final Resources mResources;
 
-    private Size mPreviewSize;
+    private Size mOutputSize;
     private CameraCaptureSession mCaptureSession;
     private CameraDevice mCameraDevice;
     private CaptureRequest.Builder mPreviewRequestBuilder;
@@ -256,17 +252,18 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                     return;
                 }
 
-                final List<Size> outputSizes = Arrays.asList(map.getOutputSizes(IMAGE_FORMAT));
-                final Size largest = Collections.max(outputSizes, new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(largest.getWidth() / 4, largest.getHeight() / 4, IMAGE_FORMAT, 2);
-                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getBackgroundHandler());
-                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), width, height, largest);
-
                 final int orientation = mResources.getConfiguration().orientation;
+                mOutputSize = chooseOptimalOutputSize(map, orientation, width, height);
+                final int outputWidth = mOutputSize.getWidth();
+                final int outputHeight = mOutputSize.getHeight();
+
+                mImageReader = ImageReader.newInstance(width, height, IMAGE_FORMAT, 2);
+                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getBackgroundHandler());
+
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    mTextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+                    mTextureView.setAspectRatio(outputWidth, outputHeight);
                 } else {
-                    mTextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
+                    mTextureView.setAspectRatio(outputHeight, outputWidth);
                 }
 
                 mCameraId = cameraId;
@@ -275,6 +272,28 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private Size chooseOptimalOutputSize(StreamConfigurationMap map, int orientation, int width, int height) {
+        final float targetAspect = width > height
+                ? (float) width / height
+                : (float) height / width;
+
+        final List<Size> outputSizes = Arrays.asList(map.getOutputSizes(IMAGE_FORMAT));
+        Size outputSize = outputSizes.get(0);
+        float outputAspect = (float) outputSize.getWidth() / outputSize.getHeight();
+        for (Size candidateSize : outputSizes) {
+            if (candidateSize.getWidth() > MAX_WIDTH) {
+                continue;
+            }
+
+            final float candidateAspect = (float) candidateSize.getWidth() / candidateSize.getHeight();
+            if (Math.abs(candidateAspect - targetAspect) < Math.abs(outputAspect - targetAspect)) {
+                outputSize = candidateSize;
+                outputAspect = candidateAspect;
+            }
+        }
+        return outputSize;
     }
 
     private void openCamera(int width, int height) {
@@ -320,35 +339,16 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         }
     }
 
-    private static Size chooseOptimalSize(Size[] choices, int width, int height, Size aspectRatio) {
-        List<Size> bigEnough = new ArrayList<>();
-        int w = aspectRatio.getWidth();
-        int h = aspectRatio.getHeight();
-        for (Size option : choices) {
-            if (option.getHeight() == option.getWidth() * h / w &&
-                    option.getWidth() >= width && option.getHeight() >= height) {
-                bigEnough.add(option);
-            }
-        }
-
-        if (bigEnough.size() > 0) {
-            return Collections.min(bigEnough, new CompareSizesByArea());
-        } else {
-            Log.e(LOG_TAG, "Couldn't find any suitable preview size");
-            return choices[0];
-        }
-    }
-
     private void createCameraPreviewSession() {
         try {
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             assert texture != null;
 
-            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-            Log.e(LOG_TAG, "Preview Width: " + mPreviewSize.getWidth() + ", Preview Height: " + mPreviewSize.getHeight());
+            texture.setDefaultBufferSize(mOutputSize.getWidth(), mOutputSize.getHeight());
+            Log.e(LOG_TAG, "Preview Width: " + mOutputSize.getWidth() + ", Preview Height: " + mOutputSize.getHeight());
 
-            final int width = mPreviewSize.getWidth();
-            final int height = mPreviewSize.getHeight();
+            final int width = mOutputSize.getWidth();
+            final int height = mOutputSize.getHeight();
 
             Surface surface = new Surface(texture);
             Surface mImageSurface = mImageReader.getSurface();
@@ -366,12 +366,6 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                             mCaptureSession = cameraCaptureSession;
                             try {
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                                final int centerX = width / 2;
-                                final int centerY = height / 2;
-                                final int meterWidth = 2 * width / 3;
-                                final int meterHeight = 2 * height / 3;
-                                final MeteringRectangle focusArea = new MeteringRectangle(centerX - meterWidth / 2, centerY - meterHeight / 2, meterWidth, meterHeight, 1);
-                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_REGIONS, new MeteringRectangle[]{focusArea});
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, getBackgroundHandler());
                             } catch (CameraAccessException e) {
@@ -391,14 +385,14 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
     }
 
     private void configureTransform(int viewWidth, int viewHeight) {
-        if (mTextureView == null || mPreviewSize == null) {
+        if (mTextureView == null || mOutputSize == null) {
             return;
         }
 
         final int rotation = mWindowManager.getDefaultDisplay().getRotation();
         Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-        RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
+        RectF bufferRect = new RectF(0, 0, mOutputSize.getHeight(), mOutputSize.getWidth());
         float centerX = viewRect.centerX();
         float centerY = viewRect.centerY();
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
@@ -406,19 +400,11 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
             bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
             matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
             float scale = Math.max(
-                    (float) viewHeight / mPreviewSize.getHeight(),
-                    (float) viewWidth / mPreviewSize.getWidth());
+                    (float) viewHeight / mOutputSize.getHeight(),
+                    (float) viewWidth / mOutputSize.getWidth());
             matrix.postScale(scale, scale, centerX, centerY);
             matrix.postRotate(90 * (rotation - 2), centerX, centerY);
         }
         mTextureView.setTransform(matrix);
-    }
-
-    private static class CompareSizesByArea implements Comparator<Size> {
-
-        @Override
-        public int compare(Size lhs, Size rhs) {
-            return Long.signum((long) lhs.getWidth() * lhs.getHeight() - (long) rhs.getWidth() * rhs.getHeight());
-        }
     }
 }

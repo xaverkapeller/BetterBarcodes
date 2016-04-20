@@ -12,8 +12,8 @@ import com.google.zxing.Result;
  */
 class SimpleDecodeReaderWrapper extends BaseReaderWrapper {
 
-    public SimpleDecodeReaderWrapper(Reader reader) {
-        super(reader);
+    public SimpleDecodeReaderWrapper(int orientation, Reader reader) {
+        super(orientation, reader);
     }
 
     @Override
