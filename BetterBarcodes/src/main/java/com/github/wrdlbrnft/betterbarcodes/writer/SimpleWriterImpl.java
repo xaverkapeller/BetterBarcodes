@@ -7,11 +7,11 @@ import com.google.zxing.BarcodeFormat;
 /**
  * Created by kapeller on 30/03/16.
  */
-class BasicWriterImpl extends AbsZXingBarcodeWriter {
+class SimpleWriterImpl extends AbsZXingBarcodeWriter {
 
     private final BarcodeFormat mFormat;
 
-    BasicWriterImpl(BarcodeFormat format) {
+    SimpleWriterImpl(BarcodeFormat format) {
         mFormat = format;
     }
 

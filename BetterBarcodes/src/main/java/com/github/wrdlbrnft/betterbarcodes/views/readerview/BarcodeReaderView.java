@@ -1,4 +1,4 @@
-package com.github.wrdlbrnft.betterbarcodes.views;
+package com.github.wrdlbrnft.betterbarcodes.views.readerview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -10,6 +10,7 @@ import com.github.wrdlbrnft.betterbarcodes.R;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReaders;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
+import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.github.wrdlbrnft.proguardannotations.KeepSetting;
