@@ -16,7 +16,6 @@ import android.util.Log;
 import android.util.LruCache;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -31,6 +30,7 @@ import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
+import java.util.LinkedList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -71,11 +71,21 @@ public class BarcodeView extends FrameLayout {
         float calculateProgress(float horizontalProgress, float verticalProgress);
     }
 
-    public static final LayoutManager DEFAULT_LAYOUT_MANAGER = new HorizontalLayoutManager();
+    public interface ViewPool<T extends View> {
+        T claimView();
+        void returnView(T view);
+    }
+
+    public interface Binder<V extends View, T> {
+        void bind(V view, T data);
+    }
+
+    public static final LayoutManager DEFAULT_LAYOUT_MANAGER = new LinearLayoutManager(LinearLayoutManager.ORIENTATION_HORIZONTAL);
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
+    private LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
+
     private ViewGroup mContainer;
-    private ImageView[] mImageViews = new ImageView[0];
     private String mToken;
 
     @State
@@ -87,7 +97,6 @@ public class BarcodeView extends FrameLayout {
     private float mTouchPosition = 0.0f;
     private long mTouchStartTime;
     private int mTouchSlop;
-    private boolean mGenerateBitmaps = false;
 
     private final LruCache<BarcodeInfo, Bitmap> mCache = new LruCache<BarcodeInfo, Bitmap>((int) (Runtime.getRuntime().maxMemory() / 8L)) {
 
@@ -102,10 +111,15 @@ public class BarcodeView extends FrameLayout {
 
         @Override
         protected Bitmap create(BarcodeInfo info) {
-            final BarcodeWriter writer = BarcodeWriters.forFormat(info.mFormat);
-            return writer.write(info.mText, info.mWidth, info.mHeight);
+            final BarcodeWriter writer = BarcodeWriters.forFormat(info.format);
+            return writer.write(info.text, info.width, info.height);
         }
     };
+
+    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = (view, info) -> EXECUTOR.execute(() -> {
+        final Bitmap bitmap = mCache.get(info);
+        view.post(() -> view.setImageBitmap(bitmap));
+    });
 
     private final ViewPool<ImageView> mViewPool = new AbsViewPool<ImageView>() {
         @Override
@@ -117,7 +131,7 @@ public class BarcodeView extends FrameLayout {
         }
     };
 
-    private LayoutManager mLayoutManager = DEFAULT_LAYOUT_MANAGER;
+    private LayoutManager mLayoutManager;
 
     public BarcodeView(Context context) {
         super(context);
@@ -169,107 +183,83 @@ public class BarcodeView extends FrameLayout {
 
     public void setFormat(@BarcodeFormat int... formats) {
         mFormats = formats;
-        queueGenerateBitmaps();
+        updatePosition(mPosition);
     }
 
     public void setToken(String token) {
         mToken = token;
-        queueGenerateBitmaps();
+        updatePosition(mPosition);
     }
 
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
         mContainer = (ViewGroup) findViewById(R.id.container);
-        queueGenerateBitmaps();
+        setLayoutManager(DEFAULT_LAYOUT_MANAGER);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        queueGenerateBitmaps();
     }
 
     public void setLayoutManager(@NonNull LayoutManager layoutManager) {
         mLayoutManager = layoutManager;
+        post(this::layoutViews);
     }
 
-    private void queueGenerateBitmaps() {
-        if (mGenerateBitmaps) {
-            return;
+    private void layoutViews() {
+        for (ViewHolder holder : mViewHolders) {
+            holder.unbind();
         }
-        mGenerateBitmaps = true;
-        post(this::generateBitmaps);
-    }
 
-    private void generateBitmaps() {
-        mGenerateBitmaps = false;
-        if (mToken == null || mFormats.length == 0) {
-            mPosition = 0.0f;
-            for (ImageView imageView : mImageViews) {
-                imageView.setImageBitmap(null);
-            }
-            return;
-        }
+        mViewHolders = new LinkedList<>();
 
         final int retainCount = mLayoutManager.getOffCenterRetainCount();
-        final int requiredViewCount = retainCount * 2 + 1;
-        final int currentViewCount = mImageViews.length;
-
-        if (currentViewCount > requiredViewCount) {
-            for (int i = currentViewCount - 1; i >= requiredViewCount - 1; i--) {
-                final ImageView imageView = mImageViews[i];
-                mViewPool.returnView(imageView);
-            }
-            final ImageView[] imageViews = new ImageView[requiredViewCount];
-            System.arraycopy(mImageViews, 0, imageViews, 0, requiredViewCount);
-            mImageViews = imageViews;
-        } else if (currentViewCount < requiredViewCount) {
-            final ImageView[] imageViews = new ImageView[requiredViewCount];
-            System.arraycopy(mImageViews, 0, imageViews, 0, currentViewCount);
-            for (int i = currentViewCount; i < requiredViewCount; i++) {
-                imageViews[i] = mViewPool.claimView();
-            }
-            mImageViews = imageViews;
+        final int viewCount = 2 * retainCount + 1;
+        for (int i = 0; i < viewCount; i++) {
+            final ViewHolder holder = new ViewHolder(mViewPool, mLayoutManager, mBarcodeBinder);
+            final int index = i - retainCount;
+            holder.bind(index, getBarcodeInfoForIndex(index));
+            mViewHolders.add(holder);
         }
-
-        mContainer.post(() -> {
-            updateBarcodes();
-            updatePosition(mPosition);
-        });
-    }
-
-    private void updateBarcodes() {
-        for (int i = 0; i < mImageViews.length; i++) {
-            final ImageView imageView = mImageViews[i];
-            final int index = ((int) mPosition + i) % mFormats.length;
-            final int format = mFormats[index];
-            loadBarcodeForIndex(imageView, format);
-        }
-    }
-
-    private void loadBarcodeForIndex(ImageView imageView, int format) {
-        final BarcodeInfo viewInfo = (BarcodeInfo) imageView.getTag();
-        final BarcodeInfo info = new BarcodeInfo(format, mToken, mContainer.getWidth(), mContainer.getHeight());
-        if(info.equals(viewInfo)) {
-            return;
-        }
-        imageView.setTag(info);
-
-        EXECUTOR.execute(() -> {
-            final Bitmap bitmap = mCache.get(info);
-            imageView.post(() -> imageView.setImageBitmap(bitmap));
-        });
+        post(() -> updatePosition(0.0f));
     }
 
     private void updatePosition(float position) {
         mPosition = position;
-        final float baseProgress = position % (float) mFormats.length;
-        for (int i = 0, count = mImageViews.length; i < count; i++) {
-            final ImageView imageView = mImageViews[i];
-            final float progress = baseProgress + (float) (i - 2);
-            mLayoutManager.onTransform(imageView, progress);
+
+        if (mViewHolders.peekLast().shouldRecycle(position)) {
+            final int index = mViewHolders.peekFirst().getIndex() - 1;
+            final ViewHolder holder = mViewHolders.removeLast();
+            final BarcodeInfo info = getBarcodeInfoForIndex(index);
+            holder.bind(index, info);
+            mViewHolders.addFirst(holder);
         }
+
+        if (mViewHolders.peekFirst().shouldRecycle(position)) {
+            final int index = mViewHolders.peekLast().getIndex() + 1;
+            final ViewHolder holder = mViewHolders.removeFirst();
+            final BarcodeInfo info = getBarcodeInfoForIndex(index);
+            holder.bind(index, info);
+            mViewHolders.addLast(holder);
+        }
+
+        for (int i = 0, count = mViewHolders.size(); i < count; i++) {
+            ViewHolder viewHolder = mViewHolders.get(i);
+            viewHolder.updatePosition(position);
+        }
+    }
+
+    @NonNull
+    private BarcodeInfo getBarcodeInfoForIndex(int index) {
+        final int format = getFormatForIndex(index);
+        return new BarcodeInfo(format, mToken, mContainer.getWidth(), mContainer.getHeight());
+    }
+
+    private int getFormatForIndex(int index) {
+        final int formatIndex = index % mFormats.length;
+        return mFormats[formatIndex < 0 ? formatIndex + mFormats.length : formatIndex];
     }
 
     @Override
@@ -445,7 +435,7 @@ public class BarcodeView extends FrameLayout {
     @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
     public static class SimpleVerticalLayoutManager extends AbsLayoutManager {
 
-        private static final int OFF_CENTER_RETAIN_COUNT = 5;
+        private static final int OFF_CENTER_RETAIN_COUNT = 1;
 
         @Override
         public int getOffCenterRetainCount() {
@@ -460,17 +450,29 @@ public class BarcodeView extends FrameLayout {
 
         @Override
         public float calculateProgress(float horizontalProgress, float verticalProgress) {
-            return getState() == STATE_SELECT
-                    ? verticalProgress * 2.0f
-                    : verticalProgress;
+            return verticalProgress;
         }
     }
 
     @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
-    public static class HorizontalLayoutManager extends AbsLayoutManager {
+    public static class LinearLayoutManager extends AbsLayoutManager {
 
-        public static final int OFF_CENTER_RETAIN_COUNT = 5;
+        public static final int ORIENTATION_VERTICAL = 0x01;
+        public static final int ORIENTATION_HORIZONTAL = 0x02;
+
+        private static final int OFF_CENTER_RETAIN_COUNT = 2;
+
+        @IntDef({ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL})
+        public @interface Orientation {
+        }
+
+        @Orientation
+        private final int mOrientation;
         private Animator mAnimator;
+
+        public LinearLayoutManager(@Orientation int orientation) {
+            mOrientation = orientation;
+        }
 
         @Override
         public int getOffCenterRetainCount() {
@@ -515,15 +517,40 @@ public class BarcodeView extends FrameLayout {
 
         @Override
         public void onTransform(View view, float progress) {
-            final float translationX = (float) view.getWidth() * -progress;
-            view.setTranslationX(translationX);
+            switch (mOrientation) {
+
+                case ORIENTATION_HORIZONTAL:
+                    final float translationX = (float) view.getWidth() * -progress;
+                    view.setTranslationX(translationX);
+                    break;
+
+                case ORIENTATION_VERTICAL:
+                    final float translationY = (float) view.getHeight() * -progress * 1.2f;
+                    view.setTranslationY(translationY);
+                    break;
+
+                default:
+                    throw new IllegalStateException("Unknown orientation: " + mOrientation);
+            }
         }
 
         @Override
         public float calculateProgress(float horizontalProgress, float verticalProgress) {
-            return getState() == STATE_SELECT
-                    ? horizontalProgress * 2.0f
-                    : horizontalProgress;
+            switch (mOrientation) {
+
+                case ORIENTATION_HORIZONTAL:
+                    return getState() == STATE_SELECT
+                            ? horizontalProgress * 2.0f
+                            : horizontalProgress;
+
+                case ORIENTATION_VERTICAL:
+                    return getState() == STATE_SELECT
+                            ? verticalProgress * 2.0f
+                            : verticalProgress;
+
+                default:
+                    throw new IllegalStateException("Unknown orientation: " + mOrientation);
+            }
         }
     }
 
@@ -570,40 +597,4 @@ public class BarcodeView extends FrameLayout {
         }
     }
 
-    private static class BarcodeInfo {
-        private final int mFormat;
-        private final String mText;
-        private final int mWidth;
-        private final int mHeight;
-
-        private BarcodeInfo(int format, String text, int width, int height) {
-            mFormat = format;
-            mText = text;
-            mWidth = width;
-            mHeight = height;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            BarcodeInfo that = (BarcodeInfo) o;
-
-            if (mFormat != that.mFormat) return false;
-            if (mWidth != that.mWidth) return false;
-            if (mHeight != that.mHeight) return false;
-            return mText != null ? mText.equals(that.mText) : that.mText == null;
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = mFormat;
-            result = 31 * result + (mText != null ? mText.hashCode() : 0);
-            result = 31 * result + mWidth;
-            result = 31 * result + mHeight;
-            return result;
-        }
-    }
 }

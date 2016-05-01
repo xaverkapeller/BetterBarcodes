@@ -10,7 +10,7 @@ import java.util.Queue;
  * User: Xaver
  * Date: 24/04/16
  */
-abstract class AbsViewPool<T extends View> implements ViewPool<T> {
+abstract class AbsViewPool<T extends View> implements BarcodeView.ViewPool<T> {
 
     private final Queue<T> mViewQueue = new ArrayDeque<>();
 
