@@ -1,4 +1,4 @@
-package com.github.wrdlbrnft.betterbarcodes.views.readerview;
+package com.github.wrdlbrnft.betterbarcodes.views.reader;
 
 import android.content.Context;
 import android.content.res.TypedArray;

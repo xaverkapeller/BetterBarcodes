@@ -1,4 +1,4 @@
-package com.github.wrdlbrnft.betterbarcodes.views.barcodeview;
+package com.github.wrdlbrnft.betterbarcodes.views.writer;
 
 /**
  * Created with Android Studio
