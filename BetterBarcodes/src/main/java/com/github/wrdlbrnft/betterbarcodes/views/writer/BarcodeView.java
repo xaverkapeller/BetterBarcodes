@@ -57,6 +57,7 @@ public class BarcodeView extends FrameLayout {
     private @interface State {
     }
 
+    @KeepClass
     @KeepClassMembers
     public interface LayoutManager {
         int getOffCenterRetainCount();
@@ -68,11 +69,15 @@ public class BarcodeView extends FrameLayout {
         float calculateProgress(float horizontalProgress, float verticalProgress);
     }
 
+    @KeepClass
+    @KeepClassMembers
     public interface ViewPool<T extends View> {
         T claimView();
         void returnView(T view);
     }
 
+    @KeepClass
+    @KeepClassMembers
     public interface Binder<V extends View, T> {
         void bind(V view, T data);
     }
@@ -80,7 +85,7 @@ public class BarcodeView extends FrameLayout {
     public static final LayoutManager DEFAULT_LAYOUT_MANAGER = new LinearLayoutManager(LinearLayoutManager.ORIENTATION_HORIZONTAL);
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
-    private LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
+    private final LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
 
     private ViewGroup mContainer;
     private String mText;
@@ -211,7 +216,7 @@ public class BarcodeView extends FrameLayout {
             holder.unbind();
         }
 
-        mViewHolders = new LinkedList<>();
+        mViewHolders.clear();
 
         final int retainCount = mLayoutManager.getOffCenterRetainCount();
         final int viewCount = 2 * retainCount + 1;
@@ -440,6 +445,7 @@ public class BarcodeView extends FrameLayout {
         }
     }
 
+    @KeepClass
     @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
     public static class SimpleVerticalLayoutManager extends AbsLayoutManager {
 
@@ -462,6 +468,7 @@ public class BarcodeView extends FrameLayout {
         }
     }
 
+    @KeepClass
     @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
     public static class LinearLayoutManager extends AbsLayoutManager {
 
@@ -562,7 +569,8 @@ public class BarcodeView extends FrameLayout {
         }
     }
 
-    @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
+    @KeepClass
+    @KeepClassMembers
     public abstract static class AbsLayoutManager implements LayoutManager {
 
         public static final int STATE_DISPLAY = 0x01;
