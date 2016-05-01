@@ -83,7 +83,7 @@ public class BarcodeView extends FrameLayout {
     private LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
 
     private ViewGroup mContainer;
-    private String mToken;
+    private String mText;
 
     @State
     private int mState = STATE_DISPLAY;
@@ -157,7 +157,7 @@ public class BarcodeView extends FrameLayout {
         final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BarcodeView);
         try {
             mFormats = readFormatAttribute(typedArray);
-            mToken = typedArray.getString(R.styleable.BarcodeView_token);
+            mText = typedArray.getString(R.styleable.BarcodeView_text);
         } finally {
             typedArray.recycle();
         }
@@ -180,12 +180,12 @@ public class BarcodeView extends FrameLayout {
 
     public void setFormat(@BarcodeFormat int... formats) {
         mFormats = formats;
-        updatePosition(mPosition);
+        layoutViews();
     }
 
-    public void setToken(String token) {
-        mToken = token;
-        updatePosition(mPosition);
+    public void setText(String text) {
+        mText = text;
+        rebindViews();
     }
 
     @Override
@@ -198,6 +198,7 @@ public class BarcodeView extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        rebindViews();
     }
 
     public void setLayoutManager(@NonNull LayoutManager layoutManager) {
@@ -220,7 +221,17 @@ public class BarcodeView extends FrameLayout {
             holder.bind(index, getBarcodeInfoForIndex(index));
             mViewHolders.add(holder);
         }
-        post(() -> updatePosition(0.0f));
+        post(() -> updatePosition(mPosition));
+    }
+
+    private void rebindViews() {
+        final int retainCount = mLayoutManager.getOffCenterRetainCount();
+        final int viewCount = 2 * retainCount + 1;
+        for (int i = 0; i < viewCount; i++) {
+            final ViewHolder holder = mViewHolders.get(i);
+            final int index = i - retainCount;
+            holder.bind(index, getBarcodeInfoForIndex(index));
+        }
     }
 
     private void updatePosition(float position) {
@@ -251,7 +262,7 @@ public class BarcodeView extends FrameLayout {
     @NonNull
     private BarcodeInfo getBarcodeInfoForIndex(int index) {
         final int format = getFormatForIndex(index);
-        return new BarcodeInfo(format, mToken, mContainer.getWidth(), mContainer.getHeight());
+        return new BarcodeInfo(format, mText != null ? mText : "", mContainer.getWidth(), mContainer.getHeight());
     }
 
     private int getFormatForIndex(int index) {
@@ -268,7 +279,7 @@ public class BarcodeView extends FrameLayout {
         switch (event.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
-                if (mFormats.length < 2) {
+                if (mFormats.length < 2 || mText == null) {
                     return false;
                 }
                 mTouchStartX = x;
