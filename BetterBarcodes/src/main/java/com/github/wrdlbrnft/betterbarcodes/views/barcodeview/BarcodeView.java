@@ -12,7 +12,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.LruCache;
 import android.view.MotionEvent;
 import android.view.View;
@@ -50,8 +49,6 @@ public class BarcodeView extends FrameLayout {
     private static final int STATE_SELECT = 0x08;
     private static final int STATE_SELECT_TOUCH = 0x10;
     private static final int STATE_SELECT_SWIPE = 0x20;
-
-    private static final String TAG = "BarcodeView";
 
     @IntDef({
             STATE_DISPLAY, STATE_DISPLAY_TOUCH, STATE_DISPLAY_SWIPE,
