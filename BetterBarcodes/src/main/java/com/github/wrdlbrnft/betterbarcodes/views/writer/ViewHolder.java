@@ -68,7 +68,6 @@ class ViewHolder {
             return;
         }
         imageView.setTag(info);
-        mImageView.setImageBitmap(null);
         mBinder.bind(imageView, info);
     }
 

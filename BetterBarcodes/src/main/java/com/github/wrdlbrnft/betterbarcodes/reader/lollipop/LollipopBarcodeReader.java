@@ -126,14 +126,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 buffer.get(data);
                 final String text = reader.decode(data, mImage.getWidth(), mImage.getHeight());
                 postOnMainThread(new SuccessRunnable(text));
-            } catch (NotFoundException e) {
-                Log.d(LOG_TAG, "No barcode found.", e);
-                postOnMainThread(new FailureRunnable());
-            } catch (ChecksumException e) {
-                Log.d(LOG_TAG, "Barcode checksum was incorrect.", e);
-                postOnMainThread(new FailureRunnable());
-            } catch (FormatException e) {
-                Log.d(LOG_TAG, "Barcode Format was invalid.", e);
+            } catch (NotFoundException | ChecksumException | FormatException e) {
                 postOnMainThread(new FailureRunnable());
             } finally {
                 reader.reset();

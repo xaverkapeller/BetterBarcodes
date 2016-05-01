@@ -11,6 +11,7 @@ import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.LruCache;
 import android.view.MotionEvent;
@@ -69,15 +70,11 @@ public class BarcodeView extends FrameLayout {
         float calculateProgress(float horizontalProgress, float verticalProgress);
     }
 
-    @KeepClass
-    @KeepClassMembers
     public interface ViewPool<T extends View> {
         T claimView();
         void returnView(T view);
     }
 
-    @KeepClass
-    @KeepClassMembers
     public interface Binder<V extends View, T> {
         void bind(V view, T data);
     }
@@ -114,6 +111,9 @@ public class BarcodeView extends FrameLayout {
         @Override
         protected Bitmap create(BarcodeInfo info) {
             final BarcodeWriter writer = BarcodeWriters.forFormat(info.format);
+            if (TextUtils.isEmpty(info.text)) {
+                return null;
+            }
             return writer.write(info.text, info.width, info.height);
         }
     };
@@ -230,11 +230,15 @@ public class BarcodeView extends FrameLayout {
     }
 
     private void rebindViews() {
+        if (mViewHolders.isEmpty()) {
+            return;
+        }
+
         final int retainCount = mLayoutManager.getOffCenterRetainCount();
         final int viewCount = 2 * retainCount + 1;
         for (int i = 0; i < viewCount; i++) {
             final ViewHolder holder = mViewHolders.get(i);
-            final int index = i - retainCount;
+            final int index = holder.getIndex();
             holder.bind(index, getBarcodeInfoForIndex(index));
         }
     }
