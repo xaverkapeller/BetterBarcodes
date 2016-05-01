@@ -33,6 +33,8 @@ import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 /**
  * Created by kapeller on 05/02/16.
@@ -76,7 +78,7 @@ public class BarcodeView extends FrameLayout {
     }
 
     public interface Binder<V extends View, T> {
-        void bind(V view, T data);
+        Future<Bitmap> bind(V view, T data);
     }
 
     public static final LayoutManager DEFAULT_LAYOUT_MANAGER = new LinearLayoutManager(LinearLayoutManager.ORIENTATION_HORIZONTAL);
@@ -118,10 +120,14 @@ public class BarcodeView extends FrameLayout {
         }
     };
 
-    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = (view, info) -> EXECUTOR.execute(() -> {
-        final Bitmap bitmap = mCache.get(info);
-        view.post(() -> view.setImageBitmap(bitmap));
-    });
+    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = (view, info) -> {
+        final FutureTask<Bitmap> task = new FutureTask<>(() -> {
+            final Bitmap bitmap = mCache.get(info);
+            view.post(() -> view.setImageBitmap(bitmap));
+        }, null);
+        EXECUTOR.execute(task);
+        return task;
+    };
 
     private final ViewPool<ImageView> mViewPool = new AbsViewPool<ImageView>() {
         @Override

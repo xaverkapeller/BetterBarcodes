@@ -1,6 +1,9 @@
 package com.github.wrdlbrnft.betterbarcodes.views.writer;
 
+import android.graphics.Bitmap;
 import android.widget.ImageView;
+
+import java.util.concurrent.Future;
 
 /**
  * Created with Android Studio
@@ -19,6 +22,7 @@ class ViewHolder {
     private BarcodeInfo mInfo;
     private ImageView mImageView;
     private int mState = STATE_UNBOUND;
+    private Future<Bitmap> mTask;
 
     ViewHolder(BarcodeView.ViewPool<ImageView> viewPool, BarcodeView.LayoutManager layoutManager, BarcodeView.Binder<ImageView, BarcodeInfo> binder) {
         mViewPool = viewPool;
@@ -58,6 +62,10 @@ class ViewHolder {
 
         mViewPool.returnView(mImageView);
 
+        if (mTask != null && !mTask.isDone()) {
+            mTask.cancel(true);
+        }
+
         mInfo = null;
         mImageView = null;
     }
@@ -68,7 +76,7 @@ class ViewHolder {
             return;
         }
         imageView.setTag(info);
-        mBinder.bind(imageView, info);
+        mTask = mBinder.bind(imageView, info);
     }
 
     public int getIndex() {
