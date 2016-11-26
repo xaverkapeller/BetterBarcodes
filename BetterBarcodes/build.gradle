@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.wrdlbrnft.proguard-annotations" version "0.2.0.51"
+    id 'com.github.wrdlbrnft.proguard-annotations' version '0.2.0.51'
 }
 
 apply plugin: 'com.android.library'
@@ -8,12 +8,12 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 25
+    buildToolsVersion '25.0.1'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 25
     }
     buildTypes {
         release {
@@ -28,17 +28,17 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:23.3.0'
-    compile 'com.google.zxing:core:3.2.1'
+    compile 'com.android.support:support-v4:25.0.1'
+    compile 'com.google.zxing:core:3.3.0'
 }
 
 final bintrayUser = hasProperty('bintray_user') ? property('bintray_user') : ''
 final bintrayApiKey = hasProperty('bintray_api_key') ? property('bintray_api_key') : ''
-final versionName = hasProperty('version_name') ? property('version_name') : ''
+final versionName = hasProperty('version_name') ? property('version_name') : '0.1.0.0'
 
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier "source"
+    classifier 'source'
 }
 
 publishing {
@@ -47,8 +47,8 @@ publishing {
             groupId 'com.github.wrdlbrnft'
             artifactId 'better-barcodes'
             version versionName
-            artifact(sourceJar)
-            artifact("$buildDir/outputs/aar/BetterBarcodes-release.aar")
+            artifact sourceJar
+            artifact new File(buildDir, '/outputs/aar/BetterBarcodes-release.aar')
 
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')

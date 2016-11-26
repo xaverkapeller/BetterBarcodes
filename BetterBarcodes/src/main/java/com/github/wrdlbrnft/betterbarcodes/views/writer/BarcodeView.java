@@ -63,6 +63,14 @@ public class BarcodeView extends FrameLayout {
     @KeepClass
     @KeepClassMembers
     public interface LayoutManager {
+
+        int STATE_DISPLAY = 0x01;
+        int STATE_SELECT = 0x02;
+
+        @IntDef({STATE_DISPLAY, STATE_SELECT})
+        @interface State {
+        }
+
         int getOffCenterRetainCount();
         boolean isSelectModeOnTapEnabled();
         boolean isSelectModeOnPressEnabled();
@@ -70,6 +78,9 @@ public class BarcodeView extends FrameLayout {
         void switchToDisplayMode(View container);
         void onTransform(View view, float progress);
         float calculateProgress(float horizontalProgress, float verticalProgress);
+
+        @State
+        int getState();
     }
 
     public interface ViewPool<T extends View> {
@@ -583,9 +594,6 @@ public class BarcodeView extends FrameLayout {
     @KeepClassMembers
     public abstract static class AbsLayoutManager implements LayoutManager {
 
-        public static final int STATE_DISPLAY = 0x01;
-        public static final int STATE_SELECT = 0x02;
-
         private int mState = STATE_DISPLAY;
 
         @Override
@@ -618,9 +626,10 @@ public class BarcodeView extends FrameLayout {
 
         }
 
-        public int getState() {
+        @State
+        @Override
+        public final int getState() {
             return mState;
         }
     }
-
 }

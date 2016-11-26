@@ -16,7 +16,6 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.MeteringRectangle;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -41,10 +40,6 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static android.hardware.camera2.CameraCharacteristics.LENS_FACING;
-import static android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP;
-import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 
 /**
  * Created by kapeller on 25/01/16.
@@ -236,11 +231,11 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 final CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(cameraId);
 
                 //noinspection ConstantConditions
-                if (characteristics.get(LENS_FACING) == LENS_FACING_FRONT) {
+                if (characteristics.get(android.hardware.camera2.CameraCharacteristics.LENS_FACING) == android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT) {
                     continue;
                 }
 
-                final StreamConfigurationMap map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP);
+                final StreamConfigurationMap map = characteristics.get(android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 if (map == null) {
                     return;
                 }
@@ -359,6 +354,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                             mCaptureSession = cameraCaptureSession;
                             try {
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+//                                mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, new Rect());
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, getBackgroundHandler());
                             } catch (CameraAccessException e) {

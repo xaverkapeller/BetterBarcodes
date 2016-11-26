@@ -11,6 +11,7 @@ import java.util.concurrent.Future;
  * Date: 01/05/16
  */
 class ViewHolder {
+
     public static final int STATE_UNBOUND = 0x01;
     public static final int STATE_BOUND = 0x02;
 
