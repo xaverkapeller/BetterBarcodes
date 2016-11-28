@@ -86,6 +86,11 @@ public class BarcodeView extends FrameLayout {
     }
 
     public static final LayoutManager DEFAULT_LAYOUT_MANAGER = new LinearLayoutManager(LinearLayoutManager.ORIENTATION_HORIZONTAL);
+    private static final LruCache<BarcodeInfo, Bitmap> CACHE = new BarcodeImageCache(calculateCacheSize());
+
+    private static int calculateCacheSize() {
+        return (int) (Runtime.getRuntime().maxMemory() / 8L);
+    }
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
     private final LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
@@ -103,14 +108,7 @@ public class BarcodeView extends FrameLayout {
     private long mTouchStartTime;
     private int mTouchSlop;
 
-    private final LruCache<BarcodeInfo, Bitmap> mCache = new BarcodeImageCache(calculateCacheSize());
-
-    private static int calculateCacheSize() {
-        return (int) (Runtime.getRuntime().maxMemory() / 8L);
-    }
-
-    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = new BinderImpl(mCache);
-
+    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = new BinderImpl(CACHE);
 
     private final ViewPool<ImageView> mViewPool = new AbsViewPool<ImageView>() {
         @Override
