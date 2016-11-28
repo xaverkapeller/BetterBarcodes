@@ -7,6 +7,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -173,6 +174,9 @@ public class BarcodeView extends FrameLayout {
         inflate(context, R.layout.view_barcode, this);
         final ViewConfiguration configuration = ViewConfiguration.get(context);
         mTouchSlop = configuration.getScaledTouchSlop();
+        setBackgroundColor(Color.WHITE);
+        setClipChildren(false);
+        setClipToPadding(false);
     }
 
     private void readAttributes(Context context, AttributeSet attrs) {
