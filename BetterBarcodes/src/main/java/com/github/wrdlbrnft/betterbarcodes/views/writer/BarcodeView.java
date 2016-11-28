@@ -33,6 +33,7 @@ import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -109,7 +110,7 @@ public class BarcodeView extends FrameLayout {
     private float mTouchPosition = 0.0f;
     private long mTouchStartTime;
     private int mTouchSlop;
-    private Executor mExecutor;
+    private ExecutorService mExecutor;
 
     private final LruCache<BarcodeInfo, Bitmap> mCache = new LruCache<BarcodeInfo, Bitmap>((int) (Runtime.getRuntime().maxMemory() / 8L)) {
 
