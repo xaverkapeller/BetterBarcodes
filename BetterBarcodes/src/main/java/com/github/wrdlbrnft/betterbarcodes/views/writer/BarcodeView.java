@@ -138,7 +138,7 @@ public class BarcodeView extends FrameLayout {
             final Bitmap bitmap = mCache.get(info);
             view.post(() -> view.setImageBitmap(bitmap));
         }, null);
-        mExecutor.execute(task);
+        getExecutor().execute(task);
         return task;
     };
 
@@ -221,11 +221,12 @@ public class BarcodeView extends FrameLayout {
         mContainer = (ViewGroup) findViewById(R.id.container);
         setLayoutManager(DEFAULT_LAYOUT_MANAGER);
     }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        mExecutor = Executors.newSingleThreadExecutor();
+    
+    private Executor getExecutor() {
+        if(mExecutor == null) {
+            mExecutor = Executors.newSingleThreadExecutor();
+        }
+        return mExecutor;
     }
 
     @Override
