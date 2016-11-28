@@ -96,8 +96,7 @@ public class BarcodeView extends FrameLayout {
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
     private final LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
-    private final Executor mExecutor = Executors.newSingleThreadExecutor();
-
+    
     private ViewGroup mContainer;
     private String mText;
 
@@ -110,6 +109,7 @@ public class BarcodeView extends FrameLayout {
     private float mTouchPosition = 0.0f;
     private long mTouchStartTime;
     private int mTouchSlop;
+    private Executor mExecutor;
 
     private final LruCache<BarcodeInfo, Bitmap> mCache = new LruCache<BarcodeInfo, Bitmap>((int) (Runtime.getRuntime().maxMemory() / 8L)) {
 
@@ -219,6 +219,18 @@ public class BarcodeView extends FrameLayout {
         super.onFinishInflate();
         mContainer = (ViewGroup) findViewById(R.id.container);
         setLayoutManager(DEFAULT_LAYOUT_MANAGER);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mExecutor = Executors.newSingleThreadExecutor();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mExecutor.shutdown();
     }
 
     @Override
