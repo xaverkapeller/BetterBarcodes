@@ -44,7 +44,6 @@ import java.util.concurrent.FutureTask;
 @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
 public class BarcodeView extends FrameLayout {
 
-    private static final Executor EXECUTOR = Executors.newSingleThreadExecutor();
     private static final AccelerateDecelerateInterpolator ACCELERATE_DECELERATE_INTERPOLATOR = new AccelerateDecelerateInterpolator();
 
     private static final int STATE_DISPLAY = 0x01;
@@ -97,6 +96,7 @@ public class BarcodeView extends FrameLayout {
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
     private final LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
+    private final Executor mExecutor = Executors.newSingleThreadExecutor();
 
     private ViewGroup mContainer;
     private String mText;
@@ -137,7 +137,7 @@ public class BarcodeView extends FrameLayout {
             final Bitmap bitmap = mCache.get(info);
             view.post(() -> view.setImageBitmap(bitmap));
         }, null);
-        EXECUTOR.execute(task);
+        mExecutor.execute(task);
         return task;
     };
 
