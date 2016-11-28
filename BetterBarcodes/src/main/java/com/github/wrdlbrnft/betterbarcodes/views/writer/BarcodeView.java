@@ -8,11 +8,9 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.LruCache;
 import android.view.MotionEvent;
@@ -25,18 +23,12 @@ import android.widget.ImageView;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.R;
-import com.github.wrdlbrnft.betterbarcodes.writer.BarcodeWriter;
-import com.github.wrdlbrnft.betterbarcodes.writer.BarcodeWriters;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
 import java.util.LinkedList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
 /**
  * Created by kapeller on 05/02/16.
@@ -97,7 +89,7 @@ public class BarcodeView extends FrameLayout {
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
     private final LinkedList<ViewHolder> mViewHolders = new LinkedList<>();
-    
+
     private ViewGroup mContainer;
     private String mText;
 
@@ -110,37 +102,15 @@ public class BarcodeView extends FrameLayout {
     private float mTouchPosition = 0.0f;
     private long mTouchStartTime;
     private int mTouchSlop;
-    private ExecutorService mExecutor;
 
-    private final LruCache<BarcodeInfo, Bitmap> mCache = new LruCache<BarcodeInfo, Bitmap>((int) (Runtime.getRuntime().maxMemory() / 8L)) {
+    private final LruCache<BarcodeInfo, Bitmap> mCache = new BarcodeImageCache(calculateCacheSize());
 
-        @Override
-        protected int sizeOf(BarcodeInfo info, Bitmap value) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                return value.getAllocationByteCount();
-            }
+    private static int calculateCacheSize() {
+        return (int) (Runtime.getRuntime().maxMemory() / 8L);
+    }
 
-            return value.getByteCount();
-        }
+    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = new BinderImpl(mCache);
 
-        @Override
-        protected Bitmap create(BarcodeInfo info) {
-            final BarcodeWriter writer = BarcodeWriters.forFormat(info.format);
-            if (TextUtils.isEmpty(info.text)) {
-                return null;
-            }
-            return writer.write(info.text, info.width, info.height);
-        }
-    };
-
-    private final Binder<ImageView, BarcodeInfo> mBarcodeBinder = (view, info) -> {
-        final FutureTask<Bitmap> task = new FutureTask<>(() -> {
-            final Bitmap bitmap = mCache.get(info);
-            view.post(() -> view.setImageBitmap(bitmap));
-        }, null);
-        getExecutor().execute(task);
-        return task;
-    };
 
     private final ViewPool<ImageView> mViewPool = new AbsViewPool<ImageView>() {
         @Override
@@ -220,19 +190,6 @@ public class BarcodeView extends FrameLayout {
         super.onFinishInflate();
         mContainer = (ViewGroup) findViewById(R.id.container);
         setLayoutManager(DEFAULT_LAYOUT_MANAGER);
-    }
-    
-    private Executor getExecutor() {
-        if(mExecutor == null) {
-            mExecutor = Executors.newSingleThreadExecutor();
-        }
-        return mExecutor;
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        mExecutor.shutdown();
     }
 
     @Override
