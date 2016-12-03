@@ -16,7 +16,9 @@ import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
 /**
- * Created by kapeller on 25/01/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 25/01/16
  */
 @KeepClass
 @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
@@ -43,7 +45,7 @@ public class BarcodeReaderView extends FrameLayout {
     }
 
     private void init(Context context) {
-        inflate(context, R.layout.view_barcode_reader, this);
+        inflate(context, R.layout.layout_barcode_reader, this);
     }
 
     private void readAttributes(Context context, AttributeSet attrs) {

@@ -6,12 +6,15 @@ import android.view.TextureView;
 
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
+import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
 /**
- * Created by kapeller on 20/01/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 20/01/16
  */
 @KeepClass
-@KeepClassMembers
+@KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
 public class AspectRatioTextureView extends TextureView {
 
     private int mRatioWidth = 0;

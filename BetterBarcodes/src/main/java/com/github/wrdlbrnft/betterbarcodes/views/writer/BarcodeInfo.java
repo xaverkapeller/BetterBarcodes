@@ -40,14 +40,4 @@ class BarcodeInfo {
         result = 31 * result + height;
         return result;
     }
-
-    @Override
-    public String toString() {
-        return "BarcodeInfo{" +
-                "format=" + format +
-                ", text='" + text + '\'' +
-                ", width=" + width +
-                ", height=" + height +
-                '}';
-    }
 }

@@ -16,7 +16,9 @@ import com.google.zxing.ReaderException;
 import java.io.IOException;
 
 /**
- * Created by kapeller on 25/01/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 25/01/16
  */
 public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
 

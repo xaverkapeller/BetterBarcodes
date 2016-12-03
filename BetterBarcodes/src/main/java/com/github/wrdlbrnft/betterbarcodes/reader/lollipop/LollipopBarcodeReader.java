@@ -42,7 +42,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Created by kapeller on 25/01/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 25/01/16
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LollipopBarcodeReader extends BaseBarcodeReader {

@@ -6,7 +6,9 @@ import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 
 /**
- * Created by kapeller on 25/01/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 25/01/16
  */
 @KeepClass
 @KeepClassMembers

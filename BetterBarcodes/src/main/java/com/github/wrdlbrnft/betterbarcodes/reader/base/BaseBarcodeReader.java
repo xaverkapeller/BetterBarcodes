@@ -24,14 +24,16 @@ import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
 
 /**
- * Created by kapeller on 25/01/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 25/01/16
  */
 public abstract class BaseBarcodeReader implements BarcodeReader {
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
     private static final String LOG_TAG = BaseBarcodeReader.class.getSimpleName();
 
-    public static final PermissionHandler DUMMY_PERMISSION_HANDLER = new PermissionHandler.Adapter() {
+    private static final PermissionHandler DUMMY_PERMISSION_HANDLER = new PermissionHandler.Adapter() {
         @Override
         public void onNewPermissionRequest(PermissionRequest request) {
             throw new IllegalStateException("You need to set the PermissionHandler to handle runtime " +
@@ -41,7 +43,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         }
     };
 
-    public static final Callback DUMMY_READER_CALLBACK = token -> {
+    private static final Callback DUMMY_READER_CALLBACK = token -> {
     };
 
     public static final int STATE_PERMISSION_MISSING = 0x00;

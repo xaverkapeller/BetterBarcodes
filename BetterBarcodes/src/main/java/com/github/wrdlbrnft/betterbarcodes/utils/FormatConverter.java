@@ -5,7 +5,9 @@ import android.util.SparseArray;
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 
 /**
- * Created by kapeller on 11/04/16.
+ * Created with Android Studio
+ * User: kapeller
+ * Date: 11/04/16
  */
 public class FormatConverter {
 
