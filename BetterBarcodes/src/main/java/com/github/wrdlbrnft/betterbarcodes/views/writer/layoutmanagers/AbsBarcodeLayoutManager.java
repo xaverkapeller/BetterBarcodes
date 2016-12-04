@@ -47,6 +47,26 @@ public abstract class AbsBarcodeLayoutManager implements BarcodeLayoutManager {
 
     }
 
+    @Override
+    public void onPrepareBarcodeContainer(View barcodes) {
+
+    }
+
+    @Override
+    public void onPrepareDescriptionContainer(View descriptions) {
+
+    }
+
+    @Override
+    public void onConfigureBarcodeView(View view) {
+
+    }
+
+    @Override
+    public void onConfigureDescriptionView(View view) {
+
+    }
+
     @State
     @Override
     public final int getState() {

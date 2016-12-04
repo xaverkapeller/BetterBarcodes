@@ -45,8 +45,6 @@ import java.util.Queue;
 @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
 public class BarcodeView extends FrameLayout {
 
-    private static final AccelerateDecelerateInterpolator ACCELERATE_DECELERATE_INTERPOLATOR = new AccelerateDecelerateInterpolator();
-
     private static final int STATE_DISPLAY = 0x01;
     private static final int STATE_DISPLAY_TOUCH = 0x02;
     private static final int STATE_DISPLAY_SWIPE = 0x04;
@@ -61,10 +59,7 @@ public class BarcodeView extends FrameLayout {
     private @interface State {
     }
 
-    private interface ViewPool<T extends View> {
-        T claimView();
-        void returnView(T view);
-    }
+    private static final AccelerateDecelerateInterpolator ACCELERATE_DECELERATE_INTERPOLATOR = new AccelerateDecelerateInterpolator();
 
     private static final BarcodeLayoutManager DEFAULT_LAYOUT_MANAGER = new HorizontalRotatingLayoutManager();
 
@@ -91,11 +86,16 @@ public class BarcodeView extends FrameLayout {
 
     private final LinkedList<ViewController> mViewControllers = new LinkedList<>();
 
+    private interface ViewPool<T extends View> {
+        T claimView();
+        void returnView(T view);
+    }
+
     private final ViewPool<ImageView> mBarcodeViewPool = new AbsViewPool<ImageView>() {
         @Override
         protected ImageView createView() {
-            final ImageView view = (ImageView) mInflater.inflate(R.layout.view_barcode, mContainer, false);
-            mContainer.addView(view);
+            final ImageView view = (ImageView) mInflater.inflate(R.layout.view_barcode, mBarcodeContainer, false);
+            mBarcodeContainer.addView(view);
             return view;
         }
     };
@@ -110,7 +110,7 @@ public class BarcodeView extends FrameLayout {
     };
 
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
-    private ViewGroup mContainer;
+    private ViewGroup mBarcodeContainer;
     private ViewGroup mDescriptionContainer;
     private LayoutInflater mInflater;
     private String mText;
@@ -190,10 +190,15 @@ public class BarcodeView extends FrameLayout {
         rebindViews();
     }
 
+    public void setLayoutManager(@NonNull BarcodeLayoutManager layoutManager) {
+        mLayoutManager = layoutManager;
+        post(this::layoutViews);
+    }
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        mContainer = (ViewGroup) findViewById(R.id.container);
+        mBarcodeContainer = (ViewGroup) findViewById(R.id.container);
         mDescriptionContainer = (ViewGroup) findViewById(R.id.description_container);
         setLayoutManager(DEFAULT_LAYOUT_MANAGER);
     }
@@ -202,11 +207,6 @@ public class BarcodeView extends FrameLayout {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         rebindViews();
-    }
-
-    public void setLayoutManager(@NonNull BarcodeLayoutManager layoutManager) {
-        mLayoutManager = layoutManager;
-        post(this::layoutViews);
     }
 
     private void layoutViews() {
@@ -223,7 +223,11 @@ public class BarcodeView extends FrameLayout {
             holder.bind(index, getBarcodeInfoForIndex(index));
             mViewControllers.add(holder);
         }
-        post(() -> updatePosition(mPosition));
+        post(() -> {
+            mLayoutManager.onPrepareBarcodeContainer(mBarcodeContainer);
+            mLayoutManager.onPrepareDescriptionContainer(mDescriptionContainer);
+            updatePosition(mPosition);
+        });
     }
 
     private void rebindViews() {
@@ -268,7 +272,7 @@ public class BarcodeView extends FrameLayout {
     @NonNull
     private BarcodeInfo getBarcodeInfoForIndex(int index) {
         final int format = getFormatForIndex(index);
-        return new BarcodeInfo(format, mText != null ? mText : "", mContainer.getWidth(), mContainer.getHeight());
+        return new BarcodeInfo(format, mText != null ? mText : "", mBarcodeContainer.getWidth(), mBarcodeContainer.getHeight());
     }
 
     private int getFormatForIndex(int index) {
@@ -305,7 +309,7 @@ public class BarcodeView extends FrameLayout {
                 if (mState == STATE_DISPLAY) {
                     mState = STATE_DISPLAY_TOUCH;
                     if (selectModeOnPress) {
-                        mLayoutManager.switchToSelectMode(mContainer, mDescriptionContainer);
+                        mLayoutManager.switchToSelectMode(mBarcodeContainer, mDescriptionContainer);
                     }
                 }
 
@@ -334,23 +338,23 @@ public class BarcodeView extends FrameLayout {
                     if (mLayoutManager.isSelectModeOnTapEnabled() && isInsideTapTime()) {
                         mState = STATE_SELECT;
                         if (!mLayoutManager.isSelectModeOnPressEnabled()) {
-                            mLayoutManager.switchToSelectMode(mContainer, mDescriptionContainer);
+                            mLayoutManager.switchToSelectMode(mBarcodeContainer, mDescriptionContainer);
                         }
                     } else {
                         mState = STATE_DISPLAY;
-                        mLayoutManager.switchToDisplayMode(mContainer, mDescriptionContainer);
+                        mLayoutManager.switchToDisplayMode(mBarcodeContainer, mDescriptionContainer);
                     }
                 }
 
                 if (mState == STATE_DISPLAY_SWIPE) {
                     mState = STATE_DISPLAY;
-                    mLayoutManager.switchToDisplayMode(mContainer, mDescriptionContainer);
+                    mLayoutManager.switchToDisplayMode(mBarcodeContainer, mDescriptionContainer);
                 }
 
                 if (mState == STATE_SELECT_TOUCH) {
                     if (isInsideTapTime()) {
                         mState = STATE_DISPLAY;
-                        mLayoutManager.switchToDisplayMode(mContainer, mDescriptionContainer);
+                        mLayoutManager.switchToDisplayMode(mBarcodeContainer, mDescriptionContainer);
                     } else {
                         mState = STATE_SELECT;
                     }
@@ -389,12 +393,12 @@ public class BarcodeView extends FrameLayout {
     private final BarcodeLayoutManager.ContainerInfo mInfo = new BarcodeLayoutManager.ContainerInfo() {
         @Override
         public int getWidth() {
-            return mContainer.getWidth();
+            return mBarcodeContainer.getWidth();
         }
 
         @Override
         public int getHeight() {
-            return mContainer.getWidth();
+            return mBarcodeContainer.getWidth();
         }
     };
 
@@ -488,11 +492,13 @@ public class BarcodeView extends FrameLayout {
             mIndex = index;
             if (mBarcodeView == null) {
                 mBarcodeView = mBarcodeViewPool.claimView();
+                mLayoutManager.onConfigureBarcodeView(mBarcodeView);
             }
             bindBarcode(mBarcodeView, info);
 
             if (mDescriptionView == null) {
                 mDescriptionView = mDescriptionViewPool.claimView();
+                mLayoutManager.onConfigureDescriptionView(mDescriptionView);
             }
             mDescriptionView.setText(getNameForFormat(info.format));
         }

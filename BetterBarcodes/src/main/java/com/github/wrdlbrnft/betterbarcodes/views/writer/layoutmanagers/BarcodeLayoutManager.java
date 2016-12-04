@@ -29,12 +29,22 @@ public interface BarcodeLayoutManager {
     }
 
     int getOffCenterRetainCount();
+
     boolean isSelectModeOnTapEnabled();
     boolean isSelectModeOnPressEnabled();
+
     void switchToSelectMode(View barcodes, View descriptions);
     void switchToDisplayMode(View barcodes, View descriptions);
+
+    void onPrepareBarcodeContainer(View barcodes);
+    void onPrepareDescriptionContainer(View descriptions);
+
+    void onConfigureBarcodeView(View view);
+    void onConfigureDescriptionView(View view);
+
     void onTransformBarcode(ContainerInfo container, View view, float progress);
     void onTransformDescription(ContainerInfo container, View view, float progress);
+
     float calculateProgress(float horizontalProgress, float verticalProgress);
 
     @State

@@ -1,5 +1,6 @@
 package com.github.wrdlbrnft.betterbarcodes.views.writer.layoutmanagers;
 
+import android.util.TypedValue;
 import android.view.View;
 
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
@@ -39,13 +40,31 @@ public class HorizontalRotatingLayoutManager extends AbsBarcodeLayoutManager {
     }
 
     @Override
-    protected void onSwitchToSelectMode(View view, View descriptions) {
-        view.animate().scaleX(0.5f).scaleY(0.5f);
+    protected void onSwitchToSelectMode(View barcodes, View descriptions) {
+        barcodes.animate().scaleX(0.5f).scaleY(0.5f);
+        descriptions.animate().translationY(0.0f);
     }
 
     @Override
-    protected void onSwitchToDisplayMode(View view, View descriptions) {
-        view.animate().scaleX(1.0f).scaleY(1.0f);
+    protected void onSwitchToDisplayMode(View barcodes, View descriptions) {
+        barcodes.animate().scaleX(1.0f).scaleY(1.0f);
+        descriptions.animate().translationY(descriptions.getHeight());
+    }
+
+    @Override
+    public void onConfigureBarcodeView(View view) {
+        view.setCameraDistance(8000.0f);
+    }
+
+    @Override
+    public void onConfigureDescriptionView(View view) {
+        final int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8.0f, view.getResources().getDisplayMetrics());
+        view.setPadding(padding, padding, padding, padding);
+    }
+
+    @Override
+    public void onPrepareDescriptionContainer(View descriptions) {
+        descriptions.setTranslationY(descriptions.getHeight());
     }
 
     @Override
