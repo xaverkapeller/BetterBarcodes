@@ -42,6 +42,10 @@ public class HorizontalRotatingLayoutManager extends AbsBarcodeLayoutManager {
     @Override
     protected void onSwitchToSelectMode(View barcodes, View descriptions) {
         barcodes.animate().scaleX(0.5f).scaleY(0.5f);
+        if (descriptions.getVisibility() != View.VISIBLE) {
+            descriptions.setVisibility(View.VISIBLE);
+            descriptions.setTranslationY(descriptions.getHeight());
+        }
         descriptions.animate().translationY(0.0f);
     }
 
@@ -57,14 +61,10 @@ public class HorizontalRotatingLayoutManager extends AbsBarcodeLayoutManager {
     }
 
     @Override
-    public void onConfigureDescriptionView(View view) {
-        final int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8.0f, view.getResources().getDisplayMetrics());
-        view.setPadding(padding, padding, padding, padding);
-    }
-
-    @Override
     public void onPrepareDescriptionContainer(View descriptions) {
-        descriptions.setTranslationY(descriptions.getHeight());
+        final int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16.0f, descriptions.getResources().getDisplayMetrics());
+        descriptions.setPadding(padding, padding, padding, padding);
+        descriptions.setVisibility(View.INVISIBLE);
     }
 
     @Override

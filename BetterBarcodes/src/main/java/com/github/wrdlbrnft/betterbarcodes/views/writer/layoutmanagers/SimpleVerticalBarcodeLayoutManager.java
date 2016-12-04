@@ -1,5 +1,6 @@
 package com.github.wrdlbrnft.betterbarcodes.views.writer.layoutmanagers;
 
+import android.util.TypedValue;
 import android.view.View;
 
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
@@ -36,5 +37,17 @@ public class SimpleVerticalBarcodeLayoutManager extends AbsBarcodeLayoutManager 
     @Override
     public float calculateProgress(float horizontalProgress, float verticalProgress) {
         return verticalProgress;
+    }
+
+    @Override
+    public void onPrepareBarcodeContainer(View barcodes) {
+        final int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16.0f, barcodes.getResources().getDisplayMetrics());
+        barcodes.setPadding(padding, padding, padding, padding);
+    }
+
+    @Override
+    public void onPrepareDescriptionContainer(View descriptions) {
+        final int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8.0f, descriptions.getResources().getDisplayMetrics());
+        descriptions.setPadding(padding, padding, padding, padding);
     }
 }

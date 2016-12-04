@@ -1,6 +1,7 @@
 package com.github.wrdlbrnft.betterbarcodes.views.writer.layoutmanagers;
 
 import android.support.annotation.IntDef;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
@@ -42,7 +43,7 @@ public class LinearBarcodeLayoutManager extends AbsBarcodeLayoutManager {
 
     @Override
     public boolean isSelectModeOnTapEnabled() {
-        return true;
+        return mOrientation == ORIENTATION_HORIZONTAL;
     }
 
     @Override
@@ -53,11 +54,21 @@ public class LinearBarcodeLayoutManager extends AbsBarcodeLayoutManager {
     @Override
     public void onSwitchToSelectMode(View barcodes, View descriptions) {
         barcodes.animate().scaleX(0.5f).scaleY(0.5f);
+        if (mOrientation == ORIENTATION_HORIZONTAL) {
+            if (descriptions.getVisibility() != View.VISIBLE) {
+                descriptions.setVisibility(View.VISIBLE);
+                descriptions.setTranslationY(descriptions.getHeight());
+            }
+            descriptions.animate().translationY(0.0f);
+        }
     }
 
     @Override
     public void onSwitchToDisplayMode(View barcodes, View descriptions) {
         barcodes.animate().scaleX(1.0f).scaleY(1.0f);
+        if (mOrientation == ORIENTATION_HORIZONTAL) {
+            descriptions.animate().translationY(descriptions.getHeight());
+        }
     }
 
     @Override
@@ -89,7 +100,7 @@ public class LinearBarcodeLayoutManager extends AbsBarcodeLayoutManager {
                 break;
 
             case ORIENTATION_VERTICAL:
-                final float translationY = container.getHeight() * -progress * 1.2f;
+                final float translationY = container.getHeight() * -progress;
                 view.setTranslationY(translationY);
                 break;
 
@@ -114,6 +125,15 @@ public class LinearBarcodeLayoutManager extends AbsBarcodeLayoutManager {
 
             default:
                 throw new IllegalStateException("Unknown orientation: " + mOrientation);
+        }
+    }
+
+    @Override
+    public void onPrepareDescriptionContainer(View descriptions) {
+        if (mOrientation == ORIENTATION_HORIZONTAL) {
+            final int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16.0f, descriptions.getResources().getDisplayMetrics());
+            descriptions.setPadding(padding, padding, padding, padding);
+            descriptions.setVisibility(View.INVISIBLE);
         }
     }
 }
