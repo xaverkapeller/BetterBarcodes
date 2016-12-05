@@ -22,6 +22,7 @@ import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrapper;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrappers;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
+import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 
 /**
  * Created with Android Studio
@@ -62,6 +63,9 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
     private ReaderWrapper mReader;
+
+    @BarcodeFormat
+    private int mFormat = BarcodeFormat.QR_CODE;
 
     @State
     private int mState = STATE_STOPPED;
@@ -212,7 +216,13 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
 
     @Override
     public void setFormat(@BarcodeFormat int... format) {
+        mFormat = FormatUtils.combine(format);
         mReader = ReaderWrappers.forFormat(mContext, format);
+    }
+
+    @Override
+    public int getFormat() {
+        return mFormat;
     }
 
     public ReaderWrapper getCurrentReader() {

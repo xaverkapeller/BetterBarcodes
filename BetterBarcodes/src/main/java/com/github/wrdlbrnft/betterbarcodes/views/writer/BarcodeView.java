@@ -6,9 +6,10 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.LruCache;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.R;
+import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 import com.github.wrdlbrnft.betterbarcodes.views.writer.layoutmanagers.BarcodeLayoutManager;
 import com.github.wrdlbrnft.betterbarcodes.views.writer.layoutmanagers.HorizontalRotatingLayoutManager;
 import com.github.wrdlbrnft.betterbarcodes.writer.BarcodeWriter;
@@ -109,6 +111,18 @@ public class BarcodeView extends FrameLayout {
         }
     };
 
+    private final BarcodeLayoutManager.ContainerInfo mContainerInfo = new BarcodeLayoutManager.ContainerInfo() {
+        @Override
+        public int getWidth() {
+            return mBarcodeContainer.getWidth();
+        }
+
+        @Override
+        public int getHeight() {
+            return mBarcodeContainer.getWidth();
+        }
+    };
+
     private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
     private ViewGroup mBarcodeContainer;
     private ViewGroup mDescriptionContainer;
@@ -158,31 +172,22 @@ public class BarcodeView extends FrameLayout {
     private void readAttributes(Context context, AttributeSet attrs) {
         final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BarcodeView);
         try {
-            mFormats = readFormatAttribute(typedArray);
+            //noinspection WrongConstant
+            mFormats = FormatUtils.split(typedArray.getInt(R.styleable.BarcodeView_format, BarcodeFormat.QR_CODE));
             mText = typedArray.getString(R.styleable.BarcodeView_text);
         } finally {
             typedArray.recycle();
         }
     }
 
-    private int[] readFormatAttribute(TypedArray typedArray) {
-        final int formatFlags = typedArray.getInt(R.styleable.BarcodeView_format, BarcodeFormat.QR_CODE);
-        int count = 0;
-        final int[] formats = new int[BarcodeFormat.ALL_FORMATS.length];
-        for (int i = 0; i < BarcodeFormat.ALL_FORMATS.length; i++) {
-            final int format = BarcodeFormat.ALL_FORMATS[i];
-            if ((formatFlags & format) > 0) {
-                formats[count++] = format;
-            }
-        }
-        final int[] result = new int[count];
-        System.arraycopy(formats, 0, result, 0, count);
-        return result;
+    public void setFormat(@BarcodeFormat int... formats) {
+        mFormats = FormatUtils.split(formats);
+        rebindViews();
     }
 
-    public void setFormat(@BarcodeFormat int... formats) {
-        mFormats = formats;
-        layoutViews();
+    @BarcodeFormat
+    public int getFormat() {
+        return FormatUtils.combine(mFormats);
     }
 
     public void setText(String text) {
@@ -390,76 +395,27 @@ public class BarcodeView extends FrameLayout {
         animator.start();
     }
 
-    private final BarcodeLayoutManager.ContainerInfo mInfo = new BarcodeLayoutManager.ContainerInfo() {
-        @Override
-        public int getWidth() {
-            return mBarcodeContainer.getWidth();
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        final Parcelable superState = super.onSaveInstanceState();
+        final SavedState savedState = new SavedState(superState);
+        savedState.formats = mFormats;
+        savedState.text = mText;
+        return savedState;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
         }
 
-        @Override
-        public int getHeight() {
-            return mBarcodeContainer.getWidth();
-        }
-    };
-
-    @StringRes
-    private static int getNameForFormat(@BarcodeFormat int format) {
-        switch (format) {
-
-            case BarcodeFormat.AZTEC:
-                return R.string.barcode_name_aztec;
-
-            case BarcodeFormat.CODABAR:
-                return R.string.barcode_name_codabar;
-
-            case BarcodeFormat.CODE_128:
-                return R.string.barcode_name_code_128;
-
-            case BarcodeFormat.CODE_39:
-                return R.string.barcode_name_code_39;
-
-            case BarcodeFormat.CODE_93:
-                return R.string.barcode_name_code_93;
-
-            case BarcodeFormat.DATA_MATRIX:
-                return R.string.barcode_name_data_matrix;
-
-            case BarcodeFormat.EAN_13:
-                return R.string.barcode_name_ean_13;
-
-            case BarcodeFormat.EAN_8:
-                return R.string.barcode_name_ean_8;
-
-            case BarcodeFormat.ITF:
-                return R.string.barcode_name_itf;
-
-            case BarcodeFormat.MAXICODE:
-                return R.string.barcode_name_maxi_code;
-
-            case BarcodeFormat.PDF_417:
-                return R.string.barcode_name_pdf_417;
-
-            case BarcodeFormat.QR_CODE:
-                return R.string.barcode_name_qr_code;
-
-            case BarcodeFormat.RSS_14:
-                return R.string.barcode_name_rss_14;
-
-            case BarcodeFormat.RSS_EXPANDED:
-                return R.string.barcode_name_rss_expanded;
-
-            case BarcodeFormat.UPC_A:
-                return R.string.barcode_name_upc_a;
-
-            case BarcodeFormat.UPC_EAN_EXTENSION:
-                return R.string.barcode_name_upc_ean_extension;
-
-            case BarcodeFormat.UPC_E:
-                return R.string.barcode_name_upc_e;
-
-            default:
-                throw new IllegalStateException("Encountered unknown barcode format: " + format);
-        }
+        final SavedState savedState = (SavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+        mFormats = savedState.formats;
+        mText = savedState.text;
     }
 
     private class ViewController {
@@ -474,8 +430,8 @@ public class BarcodeView extends FrameLayout {
 
         void updatePosition(float position) {
             final float progress = position + mIndex;
-            mLayoutManager.onTransformBarcode(mInfo, mBarcodeView, progress);
-            mLayoutManager.onTransformDescription(mInfo, mDescriptionView, progress);
+            mLayoutManager.onTransformBarcode(mContainerInfo, mBarcodeView, progress);
+            mLayoutManager.onTransformDescription(mContainerInfo, mDescriptionView, progress);
         }
 
         boolean shouldRecycle(float position) {
@@ -500,7 +456,7 @@ public class BarcodeView extends FrameLayout {
                 mDescriptionView = mDescriptionViewPool.claimView();
                 mLayoutManager.onConfigureDescriptionView(mDescriptionView);
             }
-            mDescriptionView.setText(getNameForFormat(info.format));
+            mDescriptionView.setText(FormatUtils.getNameForFormat(info.format));
         }
 
         private void bindBarcode(ImageView imageView, BarcodeInfo info) {
@@ -552,5 +508,41 @@ public class BarcodeView extends FrameLayout {
         }
 
         protected abstract T createView();
+    }
+
+    private static class SavedState extends BaseSavedState {
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+
+        int[] formats;
+        String text;
+
+        SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            final int formatCount = in.readInt();
+            this.formats = new int[formatCount];
+            in.readIntArray(this.formats);
+            this.text = in.readString();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(this.formats.length);
+            out.writeIntArray(this.formats);
+            out.writeString(this.text);
+        }
     }
 }

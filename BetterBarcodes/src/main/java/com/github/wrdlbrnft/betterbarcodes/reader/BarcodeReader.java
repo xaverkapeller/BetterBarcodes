@@ -23,7 +23,11 @@ public interface BarcodeReader {
     void startScanning();
     void stopScanning();
     void stopPreview();
-    void setFormat(@BarcodeFormat int... format);
     void setCallback(Callback callback);
     void setCameraPermissionHandler(PermissionHandler handler);
+
+    void setFormat(@BarcodeFormat int... format);
+
+    @BarcodeFormat
+    int getFormat();
 }

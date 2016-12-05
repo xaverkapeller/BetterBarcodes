@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
-import com.github.wrdlbrnft.betterbarcodes.utils.FormatConverter;
+import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
 
@@ -32,7 +32,7 @@ public class ReaderWrappers {
     private static MultiFormatReader createZXingBarcodeReader(@BarcodeFormat int[] format) {
         final MultiFormatReader reader = new MultiFormatReader();
         final Map<DecodeHintType, Object> hints = new ArrayMap<>();
-        hints.put(DecodeHintType.POSSIBLE_FORMATS, toZXingBarcodeFormatList(format));
+        hints.put(DecodeHintType.POSSIBLE_FORMATS, toZXingBarcodeFormatList(FormatUtils.split(format)));
         reader.setHints(hints);
         return reader;
     }
@@ -42,7 +42,7 @@ public class ReaderWrappers {
         final List<com.google.zxing.BarcodeFormat> zxingFormats = new ArrayList<>();
 
         for (int format : formats) {
-            zxingFormats.add(FormatConverter.toZXing(format));
+            zxingFormats.add(FormatUtils.toZXing(format));
         }
 
         return zxingFormats;

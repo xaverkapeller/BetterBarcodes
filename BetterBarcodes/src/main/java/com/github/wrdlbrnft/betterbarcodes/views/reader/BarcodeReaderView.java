@@ -2,6 +2,8 @@ package com.github.wrdlbrnft.betterbarcodes.views.reader;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
@@ -25,7 +27,7 @@ import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 public class BarcodeReaderView extends FrameLayout {
 
     private BarcodeReader mBarcodeReader;
-    private int[] mFormats = new int[]{BarcodeFormat.QR_CODE};
+    private int mFormat = BarcodeFormat.QR_CODE;
 
     public BarcodeReaderView(Context context) {
         super(context);
@@ -51,26 +53,10 @@ public class BarcodeReaderView extends FrameLayout {
     private void readAttributes(Context context, AttributeSet attrs) {
         final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BarcodeReaderView);
         try {
-            mFormats = readFormats(typedArray);
+            mFormat = typedArray.getInt(R.styleable.BarcodeReaderView_format, BarcodeFormat.QR_CODE);
         } finally {
             typedArray.recycle();
         }
-    }
-
-    private int[] readFormats(TypedArray typedArray) {
-        final int formatFlags = typedArray.getInt(R.styleable.BarcodeReaderView_format, BarcodeFormat.QR_CODE);
-        int count = 0;
-        final int[] formats = new int[BarcodeFormat.ALL_FORMATS.length];
-        for (int i = 0; i < BarcodeFormat.ALL_FORMATS.length; i++) {
-            final int format = BarcodeFormat.ALL_FORMATS[i];
-            if ((formatFlags & format) > 0) {
-                formats[i] = format;
-                count++;
-            }
-        }
-        final int[] result = new int[count];
-        System.arraycopy(formats, 0, result, 0, count);
-        return result;
     }
 
     @Override
@@ -78,15 +64,20 @@ public class BarcodeReaderView extends FrameLayout {
         super.onFinishInflate();
         final AspectRatioTextureView textureView = (AspectRatioTextureView) findViewById(R.id.texture);
         mBarcodeReader = BarcodeReaders.get(getContext(), textureView);
-        mBarcodeReader.setFormat(mFormats);
+        mBarcodeReader.setFormat(mFormat);
     }
 
     public void setCallback(BarcodeReader.Callback callback) {
         mBarcodeReader.setCallback(callback);
     }
 
-    public void setFormat(@BarcodeFormat int... format) {
-        mBarcodeReader.setFormat(format);
+    public void setFormat(@BarcodeFormat int... formats) {
+        mBarcodeReader.setFormat(formats);
+    }
+
+    @BarcodeFormat
+    public int getFormat() {
+        return mFormat;
     }
 
     public void setCameraPermissionHandler(PermissionHandler handler) {
@@ -117,5 +108,55 @@ public class BarcodeReaderView extends FrameLayout {
     public void stop() {
         mBarcodeReader.stopPreview();
         mBarcodeReader.stopScanning();
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        final Parcelable superState = super.onSaveInstanceState();
+        final SavedState savedState = new SavedState(superState);
+        savedState.format = mFormat;
+        return savedState;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        final SavedState savedState = (SavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+        mFormat = savedState.format;
+    }
+
+    private static class SavedState extends BaseSavedState {
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+
+        int format;
+
+        SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            this.format = in.readInt();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(this.format);
+        }
     }
 }
