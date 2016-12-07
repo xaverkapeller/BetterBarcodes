@@ -116,6 +116,9 @@ public class FormatUtils {
             case BarcodeFormat.UPC_E:
                 return R.string.barcode_name_upc_e;
 
+            case BarcodeFormat.NONE:
+                return R.string.barcode_name_none;
+
             default:
                 throw new IllegalStateException("Encountered unknown barcode format: " + format);
         }

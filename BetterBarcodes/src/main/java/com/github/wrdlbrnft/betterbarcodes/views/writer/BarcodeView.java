@@ -195,6 +195,10 @@ public class BarcodeView extends FrameLayout {
         rebindViews();
     }
 
+    public String getText() {
+        return mText;
+    }
+
     public void setLayoutManager(@NonNull BarcodeLayoutManager layoutManager) {
         mLayoutManager = layoutManager;
         post(this::layoutViews);
@@ -223,10 +227,10 @@ public class BarcodeView extends FrameLayout {
         final int retainCount = mLayoutManager.getOffCenterRetainCount();
         final int viewCount = 2 * retainCount + 1;
         for (int i = 0; i < viewCount; i++) {
-            final ViewController holder = new ViewController();
+            final ViewController controller = new ViewController();
             final int index = i - retainCount;
-            holder.bind(index, getBarcodeInfoForIndex(index));
-            mViewControllers.add(holder);
+            controller.bind(index, getBarcodeInfoForIndex(index));
+            mViewControllers.add(controller);
         }
         post(() -> {
             mLayoutManager.onPrepareBarcodeContainer(mBarcodeContainer);
@@ -243,9 +247,10 @@ public class BarcodeView extends FrameLayout {
         final int retainCount = mLayoutManager.getOffCenterRetainCount();
         final int viewCount = 2 * retainCount + 1;
         for (int i = 0; i < viewCount; i++) {
-            final ViewController holder = mViewControllers.get(i);
-            final int index = holder.getIndex();
-            holder.bind(index, getBarcodeInfoForIndex(index));
+            final ViewController controller = mViewControllers.get(i);
+            final int index = controller.getIndex();
+            controller.bind(index, getBarcodeInfoForIndex(index));
+            controller.updatePosition(mPosition);
         }
     }
 
@@ -269,7 +274,7 @@ public class BarcodeView extends FrameLayout {
         }
 
         for (int i = 0, count = mViewControllers.size(); i < count; i++) {
-            ViewController viewController = mViewControllers.get(i);
+            final ViewController viewController = mViewControllers.get(i);
             viewController.updatePosition(position);
         }
     }
@@ -277,10 +282,19 @@ public class BarcodeView extends FrameLayout {
     @NonNull
     private BarcodeInfo getBarcodeInfoForIndex(int index) {
         final int format = getFormatForIndex(index);
-        return new BarcodeInfo(format, mText != null ? mText : "", mBarcodeContainer.getWidth(), mBarcodeContainer.getHeight());
+        return new BarcodeInfo(
+                format,
+                mText != null ? mText : "",
+                mBarcodeContainer.getWidth(),
+                mBarcodeContainer.getHeight()
+        );
     }
 
     private int getFormatForIndex(int index) {
+        if (mFormats.length == 0) {
+            return BarcodeFormat.NONE;
+        }
+
         final int formatIndex = index % mFormats.length;
         return mFormats[formatIndex < 0 ? formatIndex + mFormats.length : formatIndex];
     }
@@ -294,7 +308,7 @@ public class BarcodeView extends FrameLayout {
         switch (event.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
-                if (mFormats.length < 2 || mText == null) {
+                if (mFormats.length < 2 || TextUtils.isEmpty(mText)) {
                     return false;
                 }
                 mTouchStartX = x;

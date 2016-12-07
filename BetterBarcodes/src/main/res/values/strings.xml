@@ -18,4 +18,5 @@
     <string name="barcode_name_upc_a">UPC-A</string>
     <string name="barcode_name_upc_ean_extension">UPC-EAN-Extension</string>
     <string name="barcode_name_upc_e">UPC-E</string>
+    <string name="barcode_name_none"/>
 </resources>

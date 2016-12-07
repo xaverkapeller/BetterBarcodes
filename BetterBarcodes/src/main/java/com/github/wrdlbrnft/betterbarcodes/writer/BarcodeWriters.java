@@ -15,6 +15,10 @@ import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 public class BarcodeWriters {
 
     public static BarcodeWriter forFormat(@BarcodeFormat int format) {
+        if (format == BarcodeFormat.NONE) {
+            return new DummyBarcodeWriter();
+        }
+
         final com.google.zxing.BarcodeFormat zxingFormat = FormatUtils.toZXing(format);
         return new SimpleWriterImpl(zxingFormat);
     }

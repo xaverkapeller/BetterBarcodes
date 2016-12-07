@@ -13,14 +13,15 @@ import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 @KeepClass
 @KeepClassMembers
 @IntDef(value = {
-        BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.AZTEC,
-        BarcodeFormat.CODABAR, BarcodeFormat.CODE_39, BarcodeFormat.CODE_93,
-        BarcodeFormat.DATA_MATRIX, BarcodeFormat.EAN_8, BarcodeFormat.EAN_13,
-        BarcodeFormat.ITF, BarcodeFormat.MAXICODE, BarcodeFormat.PDF_417,
-        BarcodeFormat.RSS_14, BarcodeFormat.RSS_EXPANDED, BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E, BarcodeFormat.UPC_EAN_EXTENSION
+        BarcodeFormat.NONE, BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128,
+        BarcodeFormat.AZTEC, BarcodeFormat.CODABAR, BarcodeFormat.CODE_39,
+        BarcodeFormat.CODE_93, BarcodeFormat.DATA_MATRIX, BarcodeFormat.EAN_8,
+        BarcodeFormat.EAN_13, BarcodeFormat.ITF, BarcodeFormat.MAXICODE,
+        BarcodeFormat.PDF_417, BarcodeFormat.RSS_14, BarcodeFormat.RSS_EXPANDED,
+        BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.UPC_EAN_EXTENSION
 })
 public @interface BarcodeFormat {
+    int NONE = 0x00000;
     int QR_CODE = 0x00001;
     int CODE_128 = 0x00002;
     int AZTEC = 0x00004;
