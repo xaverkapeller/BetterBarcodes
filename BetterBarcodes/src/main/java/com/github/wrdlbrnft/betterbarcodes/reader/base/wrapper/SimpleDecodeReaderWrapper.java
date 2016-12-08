@@ -12,7 +12,7 @@ import com.google.zxing.Result;
  */
 class SimpleDecodeReaderWrapper extends BaseReaderWrapper {
 
-    public SimpleDecodeReaderWrapper(int orientation, Reader reader) {
+    SimpleDecodeReaderWrapper(int orientation, Reader reader) {
         super(orientation, reader);
     }
 

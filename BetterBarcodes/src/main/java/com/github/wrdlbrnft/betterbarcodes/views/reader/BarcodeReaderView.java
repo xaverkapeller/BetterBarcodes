@@ -12,6 +12,7 @@ import com.github.wrdlbrnft.betterbarcodes.R;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReaders;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
+import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
@@ -63,6 +64,9 @@ public class BarcodeReaderView extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
         final AspectRatioTextureView textureView = (AspectRatioTextureView) findViewById(R.id.texture);
+        if (isInEditMode()) {
+            return;
+        }
         mBarcodeReader = BarcodeReaders.get(getContext(), textureView);
         mBarcodeReader.setFormat(mFormat);
     }
@@ -72,6 +76,7 @@ public class BarcodeReaderView extends FrameLayout {
     }
 
     public void setFormat(@BarcodeFormat int... formats) {
+        mFormat = FormatUtils.combine(formats);
         mBarcodeReader.setFormat(formats);
     }
 

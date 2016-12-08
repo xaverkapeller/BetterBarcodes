@@ -41,8 +41,8 @@ public class FormatUtils {
     public static int[] split(@BarcodeFormat int... formats) {
         final IntSet set = new IntSet();
         for (int format : formats) {
-            for (int i = 0, count = FORMAT_MAP.size(); i < count; i++) {
-                final int separatedFormat = format & FORMAT_MAP.keyAt(i);
+            for (int existingFormat : BarcodeFormat.ALL_FORMATS) {
+                final int separatedFormat = format & existingFormat;
                 if (separatedFormat > 0) {
                     set.add(separatedFormat);
                 }
