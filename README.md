@@ -110,7 +110,7 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 }
 ```
 
-In the `onNewPermissionRequest()` method of the `PermissionHandler` you have to save the `PermissionRequest` instance that is passed in a field. By calling `start()` on the `PermissionRequest` with the current instance of your `Fragment` or `Activity` you start the actual permission request process. Later in the `onRequestPermissionsResult()` callback in your `Fragment` or `Activty` you have to call the method of the same name on the `PermissionRequest` and pass in the parameters. This implementation is enough to handle a complete request for the permission. However you can also override these methods to show a rationale and to handle cases where the permission is granted or denied:
+In the `onNewPermissionRequest()` method of the `PermissionHandler` you have to save the `PermissionRequest` instance that is passed in a field. By calling `start()` on the `PermissionRequest` with the current instance of your `Fragment` or `Activity` you start the actual permission request process. Later in the `onRequestPermissionsResult()` callback in your `Fragment` or `Activty` you have to call the method of the same name on the `PermissionRequest` and pass in the parameters. This implementation is enough to handle a complete request for the permission. However you can also override additional methods to show a rationale and to handle cases where the permission is granted or denied:
 
 ```java
 barcodeReaderView.setCameraPermissionHandler(new PermissionHandler.Adapter() {
