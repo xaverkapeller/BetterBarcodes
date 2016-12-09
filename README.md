@@ -107,7 +107,7 @@ Per default the `BarcodeView` uses the `HorizontalRotatingLayoutManager`. Better
  
 If you want to use one of these you can set it using the `setLayoutManager()` method. Of course you can always implement your own `BarcodeLayoutManager`! To simplify this BetterBarcodes includes the `AbsBarcodeLayoutManager` class which you should use if you want to implement your own one.
 
-## Usage without the Views
+### Usage without the Views
 
 If you just want to create a barcode image without using the `BarcodeView` you can do that like this:
 
