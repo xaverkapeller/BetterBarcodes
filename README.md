@@ -6,6 +6,8 @@ The best way to read and display barcodes.
 - **Extensive support of barcode formats**: Read and display 1D or 2D barcodes in almost all common formats.
 - **No lag, no loading times**: Uses the newest API and most efficient implementation to ensure the best possible performance and user experience.
 
+[![Build Status](https://travis-ci.org/Wrdlbrnft/BetterBarcodes.svg?branch=master)](https://travis-ci.org/Wrdlbrnft/BetterBarcodes)
+
 ## How I add it to my project?
 
 Just add this to the dependencies closure in your build.gradle:
@@ -13,6 +15,14 @@ Just add this to the dependencies closure in your build.gradle:
 ```groovy
 compile 'com.github.wrdlbrnft:better-barcodes:0.2.0.22'
 ```
+
+## Example App
+
+There is an example app maintained for BetterBarcodes you can find it on GitHub [**here**]().
+
+Or if you just want to test the library you can download the example app from the Play Store:
+
+[![Get it on Google Play](https://developer.android.com/images/brand/en_generic_rgb_wo_60.png)](https://play.google.com/store/apps/details?id=com.github.wrdlbrnft.betterbarcodes.example.app)
 
 ## Features
 
