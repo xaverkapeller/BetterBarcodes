@@ -61,6 +61,9 @@
 <h3>
 <a id="barcodereaderview" class="anchor" href="#barcodereaderview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>BarcodeReaderView</h3>
 
+<h4>
+<a id="basic-usage" class="anchor" href="#basic-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Basic usage</h4>
+
 <p>The <code>BarcodeReaderView</code> can be used to read a barcode of a format of your choosing.</p>
 
 <p>To use the <code>BarcodeReaderView</code> add it to your layout like this:</p>
@@ -99,6 +102,84 @@
 }</pre></div>
 
 <p>You can also independently control preview and scanning by calling <code>startPreview()</code> and <code>startScanning()</code> as well as <code>stopScanning()</code> and <code>stopPreview()</code>. However you cannot scan for barcodes without the preview running so calling <code>startScanning()</code> will also start the camera preview. In the same way <code>stopPreview()</code> will also stop scanning for barcodes.</p>
+
+<h4>
+<a id="runtime-permissions" class="anchor" href="#runtime-permissions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Runtime Permissions</h4>
+
+<p>On API levels 23 and above you need handle the runtime permission for the camera which the <code>BarcodeReaderView</code> has to use. There are two options:</p>
+
+<ul>
+<li>Either you can handle them entirely on your own. In that case you need to make sure that <code>start()</code> is only called once the permission has been granted</li>
+<li>However the preferable option is to use the permission request logic which is built into the <code>BarcodeReaderView</code>! </li>
+</ul>
+
+<p>Using the built-in permission request logic is simple:</p>
+
+<p>You have to set a <code>PermissionHandler</code> on the <code>BarcodeReaderView</code>. The <code>PermissionHandler</code> has callback methods to easily handle permission requests, show the permission rational when required and callbacks when the permission is granted or denied. To simplify implementing the <code>PermissionHandler</code> there is the <code>PermissionHandler.Adapter</code> class. The basic implementation - in this example in a <code>Fragment</code> - looks like this:</p>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-k">private</span> <span class="pl-smi">PermissionRequest</span> mPermissionRequest;
+
+<span class="pl-k">@Override</span>
+<span class="pl-k">public</span> <span class="pl-k">void</span> onViewCreated(<span class="pl-smi">View</span> view, <span class="pl-k">@Nullable</span> <span class="pl-smi">Bundle</span> savedInstanceState) {
+    <span class="pl-v">super</span><span class="pl-k">.</span>onViewCreated(view, savedInstanceState);
+    barcodeReaderView<span class="pl-k">.</span>setCameraPermissionHandler(<span class="pl-k">new</span> <span class="pl-smi">PermissionHandler</span>.<span class="pl-smi">Adapter</span>() {
+        <span class="pl-k">@Override</span>
+        <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">onNewPermissionRequest</span>(<span class="pl-smi">PermissionRequest</span> <span class="pl-v">request</span>) {
+            mPermissionRequest <span class="pl-k">=</span> request;
+            request<span class="pl-k">.</span>start(<span class="pl-smi">ExampleFragment</span><span class="pl-k">.</span><span class="pl-v">this</span>);
+        }
+    });
+}
+
+<span class="pl-k">@Override</span>
+<span class="pl-k">public</span> <span class="pl-k">void</span> onRequestPermissionsResult(<span class="pl-k">int</span> requestCode, <span class="pl-k">@NonNull</span> <span class="pl-k">String</span>[] permissions, <span class="pl-k">@NonNull</span> <span class="pl-k">int</span>[] grantResults) {
+    <span class="pl-v">super</span><span class="pl-k">.</span>onRequestPermissionsResult(requestCode, permissions, grantResults);
+    mPermissionRequest<span class="pl-k">.</span>onRequestPermissionsResult(requestCode, permissions, grantResults);
+}</pre></div>
+
+<p>In the <code>onNewPermissionRequest()</code> method of the <code>PermissionHandler</code> you have to save the <code>PermissionRequest</code> instance that is passed in a field. By calling <code>start()</code> on the <code>PermissionRequest</code> with the current instance of your <code>Fragment</code> or <code>Activity</code> you start the actual permission request process. Later in the <code>onRequestPermissionsResult()</code> callback in your <code>Fragment</code> or <code>Activty</code> you have to call the method of the same name on the <code>PermissionRequest</code> and pass in the parameters. This implementation is enough to handle a complete request for the permission. However you can also override these methods to show a rationale and to handle cases where the permission is granted or denied:</p>
+
+<div class="highlight highlight-source-java"><pre>barcodeReaderView<span class="pl-k">.</span>setCameraPermissionHandler(<span class="pl-k">new</span> <span class="pl-smi">PermissionHandler</span>.<span class="pl-smi">Adapter</span>() {
+
+    <span class="pl-k">@Override</span>
+    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">onNewPermissionRequest</span>(<span class="pl-smi">PermissionRequest</span> <span class="pl-v">request</span>) {
+        mPermissionRequest <span class="pl-k">=</span> request;
+        request<span class="pl-k">.</span>start(<span class="pl-smi">ReaderFragment</span><span class="pl-k">.</span><span class="pl-v">this</span>);
+    }
+
+    <span class="pl-k">@Override</span>
+    <span class="pl-k">public</span> <span class="pl-k">boolean</span> <span class="pl-en">onShowRationale</span>() {
+
+        <span class="pl-k">final</span> <span class="pl-smi">AlertDialog</span> rationaleDialog <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">AlertDialog</span>.<span class="pl-smi">Builder</span>(getContext())
+                .setTitle(<span class="pl-smi">R</span><span class="pl-k">.</span>string<span class="pl-k">.</span>rationale_title)
+                .setMessage(<span class="pl-smi">R</span><span class="pl-k">.</span>string<span class="pl-k">.</span>rationale_message)
+                .setPositiveButton(<span class="pl-smi">android<span class="pl-k">.</span>R</span><span class="pl-k">.</span>string<span class="pl-k">.</span>ok, <span class="pl-k">new</span> <span class="pl-smi">DialogInterface</span>.<span class="pl-smi">OnClickListener</span>() {
+                    <span class="pl-k">@Override</span>
+                    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">onClick</span>(<span class="pl-smi">DialogInterface</span> <span class="pl-v">dialogInterface</span>, <span class="pl-k">int</span> <span class="pl-v">button</span>) {
+                        dialogInterface<span class="pl-k">.</span>dismiss();
+
+                        <span class="pl-c">// Call this to continue the request process after showing your rationale in whatever way you want.</span>
+                        mPermissionRequest<span class="pl-k">.</span>continueAfterRationale(<span class="pl-smi">ExampleFragment</span><span class="pl-k">.</span><span class="pl-v">this</span>);
+                    }
+                })
+                .create();
+
+        rationaleDialog<span class="pl-k">.</span>show();
+
+        <span class="pl-c">// Return true here if you show a rationale</span>
+        <span class="pl-k">return</span> <span class="pl-c1">true</span>;
+    }
+
+    <span class="pl-k">@Override</span>
+    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">onPermissionGranted</span>() {
+        <span class="pl-c">// Called when the permission is granted</span>
+    }
+
+    <span class="pl-k">@Override</span>
+    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">onPermissionDenied</span>() {
+        <span class="pl-c">// Called when the permission is denied</span>
+    }
+});</pre></div>
 
 <h3>
 <a id="barcodeview" class="anchor" href="#barcodeview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>BarcodeView</h3>
@@ -150,7 +231,7 @@ reader<span class="pl-k">.</span>startScanning();
 reader<span class="pl-k">.</span>stopScanning();
 reader<span class="pl-k">.</span>stopPreview();</pre></div>
 
-<p>The <code>BarcodeReader</code> object works in principle the same way as the <code>BarcodeReaderView</code> does.</p>
+<p>The <code>BarcodeReader</code> object works in principle the same way as the <code>BarcodeReaderView</code> does - including the way you can handle runtime permissions.</p>
 
 <h2>
 <a id="based-on-zxing" class="anchor" href="#based-on-zxing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Based on ZXing</h2>
