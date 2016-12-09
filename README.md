@@ -33,6 +33,8 @@ BetterBarcodes includes two ready to use Views which you can add to your layout:
 
 ### BarcodeReaderView
 
+#### Basic usage
+
 The `BarcodeReaderView` can be used to read a barcode of a format of your choosing.
 
 To use the `BarcodeReaderView` add it to your layout like this:
@@ -74,6 +76,85 @@ public void onPause() {
 ```
 
 You can also independently control preview and scanning by calling `startPreview()` and `startScanning()` as well as `stopScanning()` and `stopPreview()`. However you cannot scan for barcodes without the preview running so calling `startScanning()` will also start the camera preview. In the same way `stopPreview()` will also stop scanning for barcodes.
+
+#### Runtime Permissions
+
+On API levels 23 and above you need handle the runtime permission for the camera which the `BarcodeReaderView` has to use. There are two options:
+
+ - Either you can handle them entirely on your own. In that case you need to make sure that `start()` is only called once the permission has been granted
+ - However the preferable option is to use the permission request logic which is built into the `BarcodeReaderView`! 
+ 
+Using the built-in permission request logic is simple:
+
+You have to set a `PermissionHandler` on the `BarcodeReaderView`. The `PermissionHandler` has callback methods to easily handle permission requests, show the permission rational when required and callbacks when the permission is granted or denied. To simplify implementing the `PermissionHandler` there is the `PermissionHandler.Adapter` class. The basic implementation - in this example in a `Fragment` - looks like this:
+
+```java
+private PermissionRequest mPermissionRequest;
+
+@Override
+public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    barcodeReaderView.setCameraPermissionHandler(new PermissionHandler.Adapter() {
+        @Override
+        public void onNewPermissionRequest(PermissionRequest request) {
+            mPermissionRequest = request;
+            request.start(ExampleFragment.this);
+        }
+    });
+}
+
+@Override
+public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    mPermissionRequest.onRequestPermissionsResult(requestCode, permissions, grantResults);
+}
+```
+
+In the `onNewPermissionRequest()` method of the `PermissionHandler` you have to save the `PermissionRequest` instance that is passed in a field. By calling `start()` on the `PermissionRequest` with the current instance of your `Fragment` or `Activity` you start the actual permission request process. Later in the `onRequestPermissionsResult()` callback in your `Fragment` or `Activty` you have to call the method of the same name on the `PermissionRequest` and pass in the parameters. This implementation is enough to handle a complete request for the permission. However you can also override these methods to show a rationale and to handle cases where the permission is granted or denied:
+
+```java
+barcodeReaderView.setCameraPermissionHandler(new PermissionHandler.Adapter() {
+
+    @Override
+    public void onNewPermissionRequest(PermissionRequest request) {
+        mPermissionRequest = request;
+        request.start(ReaderFragment.this);
+    }
+
+    @Override
+    public boolean onShowRationale() {
+
+        final AlertDialog rationaleDialog = new AlertDialog.Builder(getContext())
+                .setTitle(R.string.rationale_title)
+                .setMessage(R.string.rationale_message)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int button) {
+                        dialogInterface.dismiss();
+                        
+                        // Call this to continue the request process after showing your rationale in whatever way you want.
+                        mPermissionRequest.continueAfterRationale(ExampleFragment.this);
+                    }
+                })
+                .create();
+
+        rationaleDialog.show();
+        
+        // Return true here if you show a rationale
+        return true;
+    }
+
+    @Override
+    public void onPermissionGranted() {
+        // Called when the permission is granted
+    }
+
+    @Override
+    public void onPermissionDenied() {
+        // Called when the permission is denied
+    }
+});
+```
 
 ### BarcodeView
 
@@ -129,7 +210,7 @@ reader.stopScanning();
 reader.stopPreview();
 ```
 
-The `BarcodeReader` object works in principle the same way as the `BarcodeReaderView` does.
+The `BarcodeReader` object works in principle the same way as the `BarcodeReaderView` does - including the way you can handle runtime permissions.
 
 ## Based on ZXing
 
