@@ -31,23 +31,23 @@
 <p><a href="https://travis-ci.org/Wrdlbrnft/BetterBarcodes"><img src="https://travis-ci.org/Wrdlbrnft/BetterBarcodes.svg?branch=master" alt="Build Status"></a></p>
 
 <h2>
-<a id="how-i-add-it-to-my-project" class="anchor" href="#how-i-add-it-to-my-project" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How I add it to my project?</h2>
+<a id="how-do-i-add-it-to-my-project" class="anchor" href="#how-do-i-add-it-to-my-project" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How do I add it to my project?</h2>
 
 <p>Just add this to the dependencies closure in your build.gradle:</p>
 
-<div class="highlight highlight-source-groovy"><pre>compile <span class="pl-s"><span class="pl-pds">'</span>com.github.wrdlbrnft:better-barcodes:0.2.0.22<span class="pl-pds">'</span></span></pre></div>
+<div class="highlight highlight-source-groovy"><pre>compile <span class="pl-s"><span class="pl-pds">'</span>com.github.wrdlbrnft:better-barcodes:0.2.0.23<span class="pl-pds">'</span></span></pre></div>
 
 <h2>
 <a id="example-app" class="anchor" href="#example-app" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Example App</h2>
 
-<p>There is an example app maintained for BetterBarcodes you can find it on GitHub <a href=""><strong>here</strong></a>.</p>
+<p>There is an example app maintained for BetterBarcodes you can find it on GitHub <a href="https://github.com/Wrdlbrnft/BetterBarcodes-Example-App"><strong>here</strong></a>.</p>
 
 <p>Or if you just want to test the library you can download the example app from the Play Store:</p>
 
 <p><a href="https://play.google.com/store/apps/details?id=com.github.wrdlbrnft.betterbarcodes.example.app"><img src="https://developer.android.com/images/brand/en_generic_rgb_wo_60.png" alt="Get it on Google Play"></a></p>
 
 <h2>
-<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
+<a id="how-do-i-use-it" class="anchor" href="#how-do-i-use-it" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How do I use it?</h2>
 
 <p>BetterBarcodes includes two ready to use Views which you can add to your layout:</p>
 
@@ -220,9 +220,11 @@ barcodeView<span class="pl-k">.</span>setText(<span class="pl-s"><span class="pl
 <div class="highlight highlight-source-java"><pre><span class="pl-k">final</span> <span class="pl-smi">BarcodeWriter</span> writer <span class="pl-k">=</span> <span class="pl-smi">BarcodeWriters</span><span class="pl-k">.</span>forFormat(<span class="pl-smi">BarcodeFormat</span><span class="pl-c1"><span class="pl-k">.</span>QR_CODE</span>);
 <span class="pl-k">final</span> <span class="pl-smi">Bitmap</span> barcodeImage <span class="pl-k">=</span> writer<span class="pl-k">.</span>write(<span class="pl-s"><span class="pl-pds">"</span>Some Text<span class="pl-pds">"</span></span>, someWidth, someHeight);</pre></div>
 
-<p>You can also read barcodes without using the <code>BarcodeReaderView</code>, however you need to use the <code>AspectRatioTextureView</code> which is also included in the BetterBarcodes library:</p>
+<p>You can also read barcodes without using the <code>BarcodeReaderView</code>. </p>
 
-<div class="highlight highlight-source-java"><pre><span class="pl-k">final</span> <span class="pl-smi">BarcodeReader</span> reader <span class="pl-k">=</span> <span class="pl-smi">BarcodeReaders</span><span class="pl-k">.</span>get(getContext(), aspectRatioTextureView);
+<p>You can either place an <code>AspectRatioTextureView</code> in your layout and then create a <code>BarcodeReader</code> instance from it to read barcodes using them camera:</p>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-k">final</span> <span class="pl-smi">BarcodeReader</span> reader <span class="pl-k">=</span> <span class="pl-smi">BarcodeReaders</span><span class="pl-k">.</span>get(context, aspectRatioTextureView);
 reader<span class="pl-k">.</span>setFormat(<span class="pl-smi">BarcodeFormat</span><span class="pl-c1"><span class="pl-k">.</span>QR_CODE</span>, <span class="pl-smi">BarcodeFormat</span><span class="pl-c1"><span class="pl-k">.</span>CODE_128</span>);
 
 reader<span class="pl-k">.</span>startPreview();
@@ -232,6 +234,20 @@ reader<span class="pl-k">.</span>stopScanning();
 reader<span class="pl-k">.</span>stopPreview();</pre></div>
 
 <p>The <code>BarcodeReader</code> object works in principle the same way as the <code>BarcodeReaderView</code> does - including the way you can handle runtime permissions.</p>
+
+<p>However you can also read barcodes in bitmaps and images from other sources by using a <code>BarcodeImageDecoder</code>. It is recommended to use a try/catch/finally block like below to reliably read barcodes:</p>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-k">final</span> <span class="pl-smi">BarcodeImageDecoder</span> decoder <span class="pl-k">=</span> <span class="pl-smi">BarcodeImageDecoders</span><span class="pl-k">.</span>forFormat(context, <span class="pl-smi">BarcodeFormat</span><span class="pl-c1"><span class="pl-k">.</span>QR_CODE</span>, <span class="pl-smi">BarcodeFormat</span><span class="pl-c1"><span class="pl-k">.</span>CODE_128</span>);
+
+<span class="pl-k">try</span> {
+    <span class="pl-k">final</span> <span class="pl-smi">String</span> text <span class="pl-k">=</span> decoder<span class="pl-k">.</span>decode(someImageAsByteArray, imageWidth, imageHeight);
+    <span class="pl-c">// Barcode found and decoded</span>
+} <span class="pl-k">catch</span> (<span class="pl-smi">FormatException</span> <span class="pl-k">|</span> <span class="pl-smi">ChecksumException</span> <span class="pl-k">|</span> <span class="pl-smi">NotFoundException</span> e) {
+    <span class="pl-c">// No Barcode found in the image or barcode is invalid.</span>
+} <span class="pl-k">finally</span> {
+    <span class="pl-c">// Every time a barcode is decoded you have to reset the BarcodeImageDecoder</span>
+    decoder<span class="pl-k">.</span>reset();
+}</pre></div>
 
 <h2>
 <a id="based-on-zxing" class="anchor" href="#based-on-zxing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Based on ZXing</h2>
