@@ -8,23 +8,23 @@ The best way to read and display barcodes.
 
 [![Build Status](https://travis-ci.org/Wrdlbrnft/BetterBarcodes.svg?branch=master)](https://travis-ci.org/Wrdlbrnft/BetterBarcodes)
 
-## How I add it to my project?
+## How do I add it to my project?
 
 Just add this to the dependencies closure in your build.gradle:
 
 ```groovy
-compile 'com.github.wrdlbrnft:better-barcodes:0.2.0.22'
+compile 'com.github.wrdlbrnft:better-barcodes:0.2.0.23'
 ```
 
 ## Example App
 
-There is an example app maintained for BetterBarcodes you can find it on GitHub [**here**]().
+There is an example app maintained for BetterBarcodes you can find it on GitHub [**here**](https://github.com/Wrdlbrnft/BetterBarcodes-Example-App).
 
 Or if you just want to test the library you can download the example app from the Play Store:
 
 [![Get it on Google Play](https://developer.android.com/images/brand/en_generic_rgb_wo_60.png)](https://play.google.com/store/apps/details?id=com.github.wrdlbrnft.betterbarcodes.example.app)
 
-## Features
+## How do I use it?
 
 BetterBarcodes includes two ready to use Views which you can add to your layout:
 
@@ -197,10 +197,12 @@ final BarcodeWriter writer = BarcodeWriters.forFormat(BarcodeFormat.QR_CODE);
 final Bitmap barcodeImage = writer.write("Some Text", someWidth, someHeight);
 ```
 
-You can also read barcodes without using the `BarcodeReaderView`, however you need to use the `AspectRatioTextureView` which is also included in the BetterBarcodes library:
+You can also read barcodes without using the `BarcodeReaderView`. 
+
+You can either place an `AspectRatioTextureView` in your layout and then create a `BarcodeReader` instance from it to read barcodes using them camera:
 
 ```java
-final BarcodeReader reader = BarcodeReaders.get(getContext(), aspectRatioTextureView);
+final BarcodeReader reader = BarcodeReaders.get(context, aspectRatioTextureView);
 reader.setFormat(BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128);
 
 reader.startPreview();
@@ -211,6 +213,22 @@ reader.stopPreview();
 ```
 
 The `BarcodeReader` object works in principle the same way as the `BarcodeReaderView` does - including the way you can handle runtime permissions.
+
+However you can also read barcodes in bitmaps and images from other sources by using a `BarcodeImageDecoder`. It is recommended to use a try/catch/finally block like below to reliably read barcodes:
+
+```java
+final BarcodeImageDecoder decoder = BarcodeImageDecoders.forFormat(context, BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128);
+
+try {
+    final String text = decoder.decode(someImageAsByteArray, imageWidth, imageHeight);
+    // Barcode found and decoded
+} catch (FormatException | ChecksumException | NotFoundException e) {
+    // No Barcode found in the image or barcode is invalid.
+} finally {
+    // Every time a barcode is decoded you have to reset the BarcodeImageDecoder
+    decoder.reset();
+}
+```
 
 ## Based on ZXing
 
