@@ -3,8 +3,8 @@ package com.github.wrdlbrnft.betterbarcodes.writer;
 import android.graphics.Bitmap;
 
 /**
- * Created with Android Studio
- * User: Xaver
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 07/12/2016
  */
 class DummyBarcodeWriter implements BarcodeWriter {

@@ -8,8 +8,8 @@ import com.github.wrdlbrnft.betterbarcodes.R;
 import com.github.wrdlbrnft.betterbarcodes.utils.primitives.IntSet;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: kapeller<br>
  * Date: 11/04/16
  */
 public class FormatUtils {

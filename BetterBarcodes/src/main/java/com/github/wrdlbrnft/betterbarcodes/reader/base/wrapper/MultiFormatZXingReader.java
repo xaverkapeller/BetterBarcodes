@@ -32,6 +32,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Created with Android Studio<br>
+ * User: kapeller<br>
+ * Date: 09/12/16
+ */
 class MultiFormatZXingReader implements Reader {
 
     private static final String TAG = "MultiFormatZXingReader";

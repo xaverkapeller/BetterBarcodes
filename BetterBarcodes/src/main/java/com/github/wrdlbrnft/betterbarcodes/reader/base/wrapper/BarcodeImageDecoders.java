@@ -4,17 +4,24 @@ import android.content.Context;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
+import com.github.wrdlbrnft.proguardannotations.KeepClass;
+import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
+import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 import com.google.zxing.Reader;
 
 /**
- * Created by kapeller on 01/04/16.
+ * Created with Android Studio<br>
+ * User: kapeller<br>
+ * Date: 01/04/16
  */
-public class ReaderWrappers {
+@KeepClass
+@KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
+public class BarcodeImageDecoders {
 
-    public static ReaderWrapper forFormat(Context context, @BarcodeFormat int... format) {
+    public static BarcodeImageDecoder forFormat(Context context, @BarcodeFormat int... format) {
         final Reader reader = new MultiFormatZXingReader(FormatUtils.split(format));
         final int orientation = getOrientation(context);
-        return new SimpleDecodeReaderWrapper(orientation, reader);
+        return new SimpleDecodeBarcodeImageDecoder(orientation, reader);
     }
 
     private static int getOrientation(Context context) {

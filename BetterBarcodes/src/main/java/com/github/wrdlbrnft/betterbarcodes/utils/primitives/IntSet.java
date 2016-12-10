@@ -1,8 +1,8 @@
 package com.github.wrdlbrnft.betterbarcodes.utils.primitives;
 
 /**
- * Created with Android Studio
- * User: Xaver
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 05/12/2016
  */
 public class IntSet {

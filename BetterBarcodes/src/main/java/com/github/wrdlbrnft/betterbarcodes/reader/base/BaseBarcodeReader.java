@@ -18,15 +18,15 @@ import android.util.Log;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReader;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrapper;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrappers;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoders;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
 import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: kapeller<br>
  * Date: 25/01/16
  */
 public abstract class BaseBarcodeReader implements BarcodeReader {
@@ -62,7 +62,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private Callback mCallback = DUMMY_READER_CALLBACK;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
-    private ReaderWrapper mReader;
+    private BarcodeImageDecoder mReader;
 
     @BarcodeFormat
     private int mFormat = BarcodeFormat.QR_CODE;
@@ -71,7 +71,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private int mState = STATE_STOPPED;
 
     protected BaseBarcodeReader(Context context) {
-        mReader = ReaderWrappers.forFormat(context, BarcodeFormat.QR_CODE);
+        mReader = BarcodeImageDecoders.forFormat(context, BarcodeFormat.QR_CODE);
         mContext = context;
     }
 
@@ -217,7 +217,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     @Override
     public void setFormat(@BarcodeFormat int... format) {
         mFormat = FormatUtils.combine(format);
-        mReader = ReaderWrappers.forFormat(mContext, format);
+        mReader = BarcodeImageDecoders.forFormat(mContext, format);
     }
 
     @Override
@@ -225,7 +225,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         return mFormat;
     }
 
-    public ReaderWrapper getCurrentReader() {
+    public BarcodeImageDecoder getCurrentReader() {
         return mReader;
     }
 

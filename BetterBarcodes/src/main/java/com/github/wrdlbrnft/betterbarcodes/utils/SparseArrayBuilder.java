@@ -3,8 +3,8 @@ package com.github.wrdlbrnft.betterbarcodes.utils;
 import android.util.SparseArray;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: kapeller<br>
  * Date: 11/04/16
  */
 public class SparseArrayBuilder<T> {

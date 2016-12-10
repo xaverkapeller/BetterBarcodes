@@ -9,15 +9,15 @@ import android.view.TextureView;
 import android.view.WindowManager;
 
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrapper;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.google.zxing.ReaderException;
 
 import java.io.IOException;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: kapeller<br>
  * Date: 25/01/16
  */
 public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
@@ -185,10 +185,10 @@ public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
 
     private class FrameRunnable implements Runnable {
 
-        private final ReaderWrapper mReader;
+        private final BarcodeImageDecoder mReader;
         private final Frame mFrame;
 
-        private FrameRunnable(ReaderWrapper reader, Frame frame) {
+        private FrameRunnable(BarcodeImageDecoder reader, Frame frame) {
             mReader = reader;
             mFrame = frame;
         }

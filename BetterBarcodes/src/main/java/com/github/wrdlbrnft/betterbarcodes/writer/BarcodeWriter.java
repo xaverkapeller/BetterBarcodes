@@ -7,8 +7,8 @@ import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 05/02/16
  */
 @KeepClass

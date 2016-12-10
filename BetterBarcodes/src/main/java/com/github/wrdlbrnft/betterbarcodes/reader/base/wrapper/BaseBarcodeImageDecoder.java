@@ -11,14 +11,16 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 /**
- * Created by kapeller on 01/04/16.
+ * Created with Android Studio<br>
+ * User: kapeller<br>
+ * Date: 01/04/16
  */
-abstract class BaseReaderWrapper implements ReaderWrapper {
+abstract class BaseBarcodeImageDecoder implements BarcodeImageDecoder {
 
     private final int mOrientation;
     private final Reader mReader;
 
-    protected BaseReaderWrapper(int orientation, Reader reader) {
+    protected BaseBarcodeImageDecoder(int orientation, Reader reader) {
         mOrientation = orientation;
         mReader = reader;
     }

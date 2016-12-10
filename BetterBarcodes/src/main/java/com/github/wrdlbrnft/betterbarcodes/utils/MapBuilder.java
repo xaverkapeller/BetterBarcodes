@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Created with Android Studio
- * User: Xaver
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 23/04/16
  */
 public class MapBuilder<K, V> {

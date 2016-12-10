@@ -28,7 +28,7 @@ import android.view.TextureView;
 import android.view.WindowManager;
 
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.ReaderWrapper;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
@@ -42,8 +42,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: kapeller<br>
  * Date: 25/01/16
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -116,7 +116,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
         @Override
         public void run() {
-            final ReaderWrapper reader = getCurrentReader();
+            final BarcodeImageDecoder reader = getCurrentReader();
             try {
                 final ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
                 final byte[] data = new byte[buffer.remaining()];

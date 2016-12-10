@@ -8,11 +8,13 @@ import com.google.zxing.Reader;
 import com.google.zxing.Result;
 
 /**
- * Created by kapeller on 01/04/16.
+ * Created with Android Studio<br>
+ * User: kapeller<br>
+ * Date: 01/04/16
  */
-class SimpleDecodeReaderWrapper extends BaseReaderWrapper {
+class SimpleDecodeBarcodeImageDecoder extends BaseBarcodeImageDecoder {
 
-    SimpleDecodeReaderWrapper(int orientation, Reader reader) {
+    SimpleDecodeBarcodeImageDecoder(int orientation, Reader reader) {
         super(orientation, reader);
     }
 

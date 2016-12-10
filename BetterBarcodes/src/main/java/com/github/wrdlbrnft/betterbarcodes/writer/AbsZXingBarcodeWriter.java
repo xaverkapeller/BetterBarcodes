@@ -14,8 +14,8 @@ import com.google.zxing.common.BitMatrix;
 import java.util.Map;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 30/03/16
  */
 abstract class AbsZXingBarcodeWriter implements BarcodeWriter {

@@ -5,8 +5,8 @@ import android.graphics.Bitmap;
 import com.google.zxing.BarcodeFormat;
 
 /**
- * Created with Android Studio
- * User: kapeller
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 30/03/16
  */
 class SimpleWriterImpl extends AbsZXingBarcodeWriter {

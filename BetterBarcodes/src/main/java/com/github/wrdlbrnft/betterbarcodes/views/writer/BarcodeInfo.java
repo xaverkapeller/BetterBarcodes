@@ -1,8 +1,8 @@
 package com.github.wrdlbrnft.betterbarcodes.views.writer;
 
 /**
- * Created with Android Studio
- * User: Xaver
+ * Created with Android Studio<br>
+ * User: Xaver<br>
  * Date: 01/05/16
  */
 class BarcodeInfo {
