@@ -21,7 +21,7 @@ import java.util.List;
 @KeepClassMembers
 public class BarcodeReaders {
     
-    private final List<String> CAMERA_2_DEVICES = Arrays.asList(
+    private static final List<String> CAMERA_2_DEVICES = Arrays.asList(
             "nexus 4", "nexus 5", "nexus 5x", "nexus 6", "nexus 6p", "nexus 7", "nexus 10",
             "gt-i9300", "samsung-sm-g925a", "samsung-sm-g935a", "samsung-sm-t817a", "sm-g900h",
             "lgus991", "lg-h810", "xt1058", "aquaris e5", "c6602"
