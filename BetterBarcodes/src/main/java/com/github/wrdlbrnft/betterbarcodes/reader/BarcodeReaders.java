@@ -9,6 +9,9 @@ import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created with Android Studio<br>
  * User: kapeller<br>
