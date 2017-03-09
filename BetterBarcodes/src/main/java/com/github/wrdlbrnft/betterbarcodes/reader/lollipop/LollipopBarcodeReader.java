@@ -52,7 +52,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
     private static final int IMAGE_FORMAT = ImageFormat.YUV_420_888;
     private static final String LOG_TAG = LollipopBarcodeReader.class.getSimpleName();
 
-    private static final int MAX_WIDTH = 1024;
+    private static final int MAX_WIDTH = 1280;
 
     private final CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
 
@@ -92,6 +92,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
         @Override
         public void onImageAvailable(ImageReader reader) {
+            Log.i(LOG_TAG, "Image available...");
             final Image image = reader.acquireLatestImage();
             if (image == null) {
                 return;
@@ -116,14 +117,22 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
         @Override
         public void run() {
+            Log.i(LOG_TAG, "Decoding image...");
             final BarcodeImageDecoder reader = getCurrentReader();
             try {
-                final ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
-                final byte[] data = new byte[buffer.remaining()];
-                buffer.get(data);
-                final String text = reader.decode(data, mImage.getWidth(), mImage.getHeight());
-                postOnMainThread(new SuccessRunnable(text));
-            } catch (NotFoundException | ChecksumException | FormatException e) {
+                for (Image.Plane plane : mImage.getPlanes()) {
+                    try {
+                        final ByteBuffer buffer = plane.getBuffer();
+                        final byte[] data = new byte[buffer.remaining()];
+                        buffer.get(data);
+                        final String text = reader.decode(data, plane.getRowStride(), data.length / plane.getRowStride());
+                        postOnMainThread(new SuccessRunnable(text));
+                        Log.i(LOG_TAG, "Decoding successful...");
+                        return;
+                    } catch (NotFoundException | ChecksumException | FormatException e) {
+                        Log.i(LOG_TAG, "Failed to decode...", e);
+                    }
+                }
                 postOnMainThread(new FailureRunnable());
             } finally {
                 reader.reset();
@@ -331,17 +340,14 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
     private void createCameraPreviewSession() {
         try {
-            SurfaceTexture texture = mTextureView.getSurfaceTexture();
+            final SurfaceTexture texture = mTextureView.getSurfaceTexture();
             assert texture != null;
 
             texture.setDefaultBufferSize(mOutputSize.getWidth(), mOutputSize.getHeight());
             Log.e(LOG_TAG, "Preview Width: " + mOutputSize.getWidth() + ", Preview Height: " + mOutputSize.getHeight());
 
-            final int width = mOutputSize.getWidth();
-            final int height = mOutputSize.getHeight();
-
-            Surface surface = new Surface(texture);
-            Surface mImageSurface = mImageReader.getSurface();
+            final Surface surface = new Surface(texture);
+            final Surface mImageSurface = mImageReader.getSurface();
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(mImageSurface);
             mPreviewRequestBuilder.addTarget(surface);
@@ -356,7 +362,6 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                             mCaptureSession = cameraCaptureSession;
                             try {
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-//                                mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, new Rect());
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, getBackgroundHandler());
                             } catch (CameraAccessException e) {
