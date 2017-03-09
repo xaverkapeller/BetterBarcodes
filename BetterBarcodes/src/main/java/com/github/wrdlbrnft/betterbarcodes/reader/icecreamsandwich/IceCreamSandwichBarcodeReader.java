@@ -51,6 +51,7 @@ public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
     };
 
     private final Camera.PreviewCallback mPreviewCallback = (data, camera) -> {
+        Log.i(LOG_TAG, "Frame available...");
         final Camera.Parameters parameters = camera.getParameters();
         final Camera.Size size = parameters.getPreviewSize();
         final Frame frame = new Frame(data, size.width, size.height);
@@ -196,8 +197,10 @@ public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
         @Override
         public void run() {
             try {
+                Log.i(LOG_TAG, "Reading frame...");
                 final String text = mReader.decode(mFrame.data, mFrame.width, mFrame.height);
                 postOnMainThread(new SuccessRunnable(text));
+                Log.i(LOG_TAG, "Reading frame successful...");
             } catch (ReaderException | NullPointerException | ArrayIndexOutOfBoundsException e) {
                 Log.v(LOG_TAG, "Error while processing frame data", e);
                 postOnMainThread(new FailureRunnable());
