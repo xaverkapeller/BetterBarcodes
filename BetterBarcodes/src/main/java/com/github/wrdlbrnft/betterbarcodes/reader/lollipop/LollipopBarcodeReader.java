@@ -377,7 +377,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
                         @Override
                         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            throw new IllegalStateException("Configure failed...");
+                            Log.e(LOG_TAG, "Failed to configure capture session");
                         }
                     }, null
             );
