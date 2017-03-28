@@ -2,11 +2,12 @@
 
 The best way to read and display barcodes. 
 
-- **Works on API level 14 and above**: That's 97% of all Android devices. BetterBarcodes takes care backwards compatibility so you don't have to worry about a thing!
+- **Works on API level 14 and above**: That's 99% of all Android devices. BetterBarcodes takes care backwards compatibility so you don't have to worry about a thing!
 - **Extensive support of barcode formats**: Read and display 1D or 2D barcodes in almost all common formats.
 - **No lag, no loading times**: Uses the newest API and most efficient implementation to ensure the best possible performance and user experience.
 
 [![Build Status](https://travis-ci.org/Wrdlbrnft/BetterBarcodes.svg?branch=master)](https://travis-ci.org/Wrdlbrnft/BetterBarcodes)
+[![BCH compliance](https://bettercodehub.com/edge/badge/Wrdlbrnft/BetterBarcodes)](https://bettercodehub.com/)
 
 ## How do I add it to my project?
 
@@ -232,4 +233,4 @@ try {
 
 ## Based on ZXing
 
-BetterBarcodes is using ZXing for encoding and decoding barcodes, check out their GitHub page [here](https://github.com/zxing/zxing).
+BetterBarcodes is using ZXing for encoding and decoding barcodes, check out their GitHub page [**here**](https://github.com/zxing/zxing).
