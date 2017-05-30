@@ -256,7 +256,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 final int outputWidth = mOutputSize.getWidth();
                 final int outputHeight = mOutputSize.getHeight();
 
-                mImageReader = ImageReader.newInstance(width, height, IMAGE_FORMAT, 2);
+                mImageReader = ImageReader.newInstance(outputWidth, outputHeight, IMAGE_FORMAT, 2);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getBackgroundHandler());
 
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
