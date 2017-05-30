@@ -22,7 +22,7 @@ import java.util.List;
 public class BarcodeReaders {
 
     public static BarcodeReader get(Context context, AspectRatioTextureView view) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP
                 ? new LollipopBarcodeReader(context, view)
                 : new IceCreamSandwichBarcodeReader(context, view);
     }
