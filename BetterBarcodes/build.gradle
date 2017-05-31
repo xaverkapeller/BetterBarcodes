@@ -1,9 +1,9 @@
 plugins {
     id 'com.github.wrdlbrnft.proguard-annotations' version '0.3.0.11'
+    id 'me.tatarka.retrolambda' version '3.6.0'
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
@@ -29,6 +29,7 @@ android {
 
 dependencies {
     provided 'com.android.support:support-v4:25.1.1'
+    provided 'com.android.support:support-v4:25.3.1'
     compile 'com.google.zxing:core:3.3.0'
 }
 
