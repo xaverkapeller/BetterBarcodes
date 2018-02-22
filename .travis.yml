@@ -1,13 +1,19 @@
 language: android
 jdk: oraclejdk8
+
 android:
   components:
   - tools
   - platform-tools
-  - build-tools-25.0.2
   - extra-android-m2repository
-  - android-25
+  - build-tools-27.0.3
+  - android-27
+
+before_install:
+  - yes | sdkmanager "platforms;android-27"
+
 script:
   - ./gradlew clean build
+
 after_success:
-  - ./gradlew bintrayUpload -Pbintray_user=$BINTRAY_USER -Pbintray_api_key=$BINTRAY_API_KEY -Pversion_name=0.2.0.$TRAVIS_BUILD_NUMBER
+  - ./gradlew bintrayUpload

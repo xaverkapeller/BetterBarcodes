@@ -1,5 +1,6 @@
 package com.github.wrdlbrnft.betterbarcodes.reader.lollipop;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -93,6 +94,10 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         @Override
         public void onImageAvailable(ImageReader reader) {
             try (Image image = reader.acquireLatestImage()) {
+                if (image == null) {
+                    return;
+                }
+
                 if (mReadyForFrame.getAndSet(false)) {
                     final int count;
                     final byte[][] planeBuffer;
@@ -264,6 +269,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         return outputSize;
     }
 
+    @SuppressLint("MissingPermission")
     private void openCamera(int width, int height) {
         setUpCameraOutputs(width, height);
 
@@ -276,6 +282,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
+
             //noinspection MissingPermission
             mCameraManager.openCamera(mCameraId, mStateCallback, getCameraHandler());
         } catch (CameraAccessException e) {

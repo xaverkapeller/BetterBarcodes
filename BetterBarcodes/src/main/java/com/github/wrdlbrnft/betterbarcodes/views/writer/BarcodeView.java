@@ -207,8 +207,8 @@ public class BarcodeView extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        mBarcodeContainer = (ViewGroup) findViewById(R.id.container);
-        mDescriptionContainer = (ViewGroup) findViewById(R.id.description_container);
+        mBarcodeContainer = findViewById(R.id.container);
+        mDescriptionContainer = findViewById(R.id.description_container);
         setLayoutManager(DEFAULT_LAYOUT_MANAGER);
     }
 
