@@ -14,7 +14,7 @@ The best way to read and display barcodes.
 Just add this to the dependencies closure in your build.gradle:
 
 ```groovy
-compile 'com.github.wrdlbrnft:better-barcodes:0.2.0.39'
+compile 'com.github.wrdlbrnft:better-barcodes:0.3.0.46'
 ```
 
 ## Example App

@@ -10,7 +10,7 @@
 Just add this to the dependencies closure in your build.gradle:
 
 ```groovy
-compile 'com.github.wrdlbrnft:better-barcodes:0.2.0.34'
+compile 'com.github.wrdlbrnft:better-barcodes:0.3.0.46'
 ```
 
 ## Example App
