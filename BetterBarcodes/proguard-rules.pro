@@ -17,7 +17,3 @@
 #}
 
 -dontwarn java.lang.invoke.*
-
--keep public @interface com.github.wrdlbrnft.betterbarcodes.BarcodeFormat {
-    *;
-}

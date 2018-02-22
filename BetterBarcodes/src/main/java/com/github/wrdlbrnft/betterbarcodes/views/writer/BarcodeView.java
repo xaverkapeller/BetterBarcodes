@@ -34,6 +34,8 @@ import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -58,6 +60,7 @@ public class BarcodeView extends FrameLayout {
             STATE_DISPLAY, STATE_DISPLAY_TOUCH, STATE_DISPLAY_SWIPE,
             STATE_SELECT, STATE_SELECT_TOUCH, STATE_SELECT_SWIPE
     })
+    @Retention(RetentionPolicy.SOURCE)
     private @interface State {
     }
 
