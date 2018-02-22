@@ -63,7 +63,7 @@ public class BarcodeReaderView extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        final AspectRatioTextureView textureView = (AspectRatioTextureView) findViewById(R.id.texture);
+        final AspectRatioTextureView textureView = findViewById(R.id.texture);
         if (isInEditMode()) {
             return;
         }

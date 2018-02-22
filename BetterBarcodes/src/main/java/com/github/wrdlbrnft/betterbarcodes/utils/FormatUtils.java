@@ -5,7 +5,8 @@ import android.util.SparseArray;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.R;
-import com.github.wrdlbrnft.betterbarcodes.utils.primitives.IntSet;
+import com.github.wrdlbrnft.primitivecollections.ints.IntArraySet;
+import com.github.wrdlbrnft.primitivecollections.ints.IntSet;
 
 /**
  * Created with Android Studio<br>
@@ -39,7 +40,7 @@ public class FormatUtils {
 
     @BarcodeFormat
     public static int[] split(@BarcodeFormat int... formats) {
-        final IntSet set = new IntSet();
+        final IntSet set = new IntArraySet();
         for (int format : formats) {
             for (int existingFormat : BarcodeFormat.ALL_FORMATS) {
                 final int separatedFormat = format & existingFormat;

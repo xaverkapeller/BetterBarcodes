@@ -1,5 +1,6 @@
 package com.github.wrdlbrnft.betterbarcodes.reader.lollipop;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -120,7 +121,11 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
             Log.i(LOG_TAG, "Decoding image...");
             final BarcodeImageDecoder reader = getCurrentReader();
             try {
-                for (Image.Plane plane : mImage.getPlanes()) {
+                final Image.Plane[] planes = mImage.getPlanes();
+                if (planes == null) {
+                    return;
+                }
+                for (Image.Plane plane : planes) {
                     try {
                         final ByteBuffer buffer = plane.getBuffer();
                         final byte[] data = new byte[buffer.remaining()];
@@ -133,10 +138,10 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                         Log.i(LOG_TAG, "Failed to decode...", e);
                     }
                 }
-                postOnMainThread(new FailureRunnable());
             } finally {
                 reader.reset();
                 mImage.close();
+                mReadyForFrame.set(true);
             }
         }
     }
@@ -152,15 +157,6 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         @Override
         public void run() {
             notifyResult(mText);
-            mReadyForFrame.set(true);
-        }
-    }
-
-    private class FailureRunnable implements Runnable {
-
-        @Override
-        public void run() {
-            mReadyForFrame.set(true);
         }
     }
 
@@ -295,6 +291,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         return outputSize;
     }
 
+    @SuppressLint("MissingPermission")
     private void openCamera(int width, int height) {
         setUpCameraOutputs(width, height);
 
@@ -307,7 +304,6 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            //noinspection MissingPermission
             mCameraManager.openCamera(mCameraId, mStateCallback, getBackgroundHandler());
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -361,13 +357,13 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                             }
                             mCaptureSession = cameraCaptureSession;
                             try {
-                                
+
                                 final CameraCharacteristics cameraCharacteristics = mCameraManager.getCameraCharacteristics(mCameraDevice.getId());
                                 final List<CaptureRequest.Key<?>> availableKeys = cameraCharacteristics.getAvailableCaptureRequestKeys();
-                                if(availableKeys.contains(CaptureRequest.CONTROL_AF_MODE)) {                                
+                                if (availableKeys.contains(CaptureRequest.CONTROL_AF_MODE)) {
                                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                                 }
-                                
+
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, getBackgroundHandler());
                             } catch (CameraAccessException e) {
