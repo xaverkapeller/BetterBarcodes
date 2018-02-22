@@ -7,14 +7,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReader;
@@ -23,6 +21,7 @@ import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecod
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
 import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
+import com.github.wrdlbrnft.betterbarcodes.utils.handlers.ThreadAwareHandler;
 
 /**
  * Created with Android Studio<br>
@@ -32,7 +31,7 @@ import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 public abstract class BaseBarcodeReader implements BarcodeReader {
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
-    private static final String LOG_TAG = BaseBarcodeReader.class.getSimpleName();
+    private static final String TAG = "BaseBarcodeReader";
 
     private static final PermissionHandler DUMMY_PERMISSION_HANDLER = new PermissionHandler.Adapter() {
         @Override
@@ -60,15 +59,15 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private final Context mContext;
     private PermissionHandler mPermissionHandler = DUMMY_PERMISSION_HANDLER;
     private Callback mCallback = DUMMY_READER_CALLBACK;
-    private HandlerThread mBackgroundThread;
-    private Handler mBackgroundHandler;
+    private final ThreadAwareHandler mCameraHandler = new ThreadAwareHandler("BarcodeReaderCameraThread");
+    private final ThreadAwareHandler mProcessingHandler = new ThreadAwareHandler("BarcodeReaderProcessingThread");
     private BarcodeImageDecoder mReader;
 
     @BarcodeFormat
     private int mFormat = BarcodeFormat.QR_CODE;
 
     @State
-    private int mState = STATE_STOPPED;
+    private volatile int mState = STATE_STOPPED;
 
     protected BaseBarcodeReader(Context context) {
         mReader = BarcodeImageDecoders.forFormat(context, BarcodeFormat.QR_CODE);
@@ -143,36 +142,13 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     protected abstract void onStopPreview();
 
     private void startBackgroundThread() {
-        if (mBackgroundThread != null) {
-            if (mBackgroundThread.isAlive()) {
-                return;
-            } else {
-                stopBackgroundThread();
-            }
-        }
-
-        mBackgroundThread = new HandlerThread(LOG_TAG);
-        mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        mCameraHandler.startThread();
+        mProcessingHandler.startThread();
     }
 
     private void stopBackgroundThread() {
-        if (mBackgroundThread == null) {
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            mBackgroundThread.quitSafely();
-        } else {
-            mBackgroundThread.quit();
-        }
-        try {
-            mBackgroundThread.join();
-            mBackgroundThread = null;
-            mBackgroundHandler = null;
-        } catch (InterruptedException e) {
-            Log.i(LOG_TAG, "Failed to properly terminate background thread.", e);
-        }
+        mCameraHandler.stopThread();
+        mProcessingHandler.stopThread();
     }
 
     @State
@@ -181,27 +157,43 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     }
 
     protected void notifyResult(String text) {
-        mCallback.onResult(text);
+        postOnMainThread(() -> mCallback.onResult(text));
+        stopScanning();
+        mCameraHandler.clearCallbacks(null);
     }
 
-    protected Handler getBackgroundHandler() {
-        return mBackgroundHandler;
+    protected Handler getCameraHandler() {
+        return mCameraHandler;
     }
 
-    protected void postOnBackgroundThread(Runnable runnable) {
-        mBackgroundHandler.post(runnable);
+    protected Handler getProcessingHandler() {
+        return mProcessingHandler;
     }
 
     protected void postOnMainThread(Runnable runnable) {
         MAIN_HANDLER.post(runnable);
     }
 
-    protected void postOnBackgroundThread(long delay, Runnable runnable) {
-        mBackgroundHandler.postDelayed(runnable, delay);
-    }
-
     protected void postOnMainThread(long delay, Runnable runnable) {
         MAIN_HANDLER.postDelayed(runnable, delay);
+    }
+
+    protected void postOnCameraThread(Runnable runnable) {
+        mCameraHandler.post(runnable);
+    }
+
+    protected void postOnCameraThread(long delay, Runnable runnable) {
+        mCameraHandler.postDelayed(runnable, delay);
+    }
+
+    protected void postOnProcessingThread(Runnable runnable) {
+        if (getState() == STATE_SCANNING) {
+            mProcessingHandler.post(runnable);
+        }
+    }
+
+    protected void postOnProcessingThread(long delay, Runnable runnable) {
+        mProcessingHandler.postDelayed(runnable, delay);
     }
 
     @Override

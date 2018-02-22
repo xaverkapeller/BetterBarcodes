@@ -93,72 +93,50 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Log.i(LOG_TAG, "Image available...");
-            final Image image = reader.acquireLatestImage();
-            if (image == null) {
-                return;
-            }
-
-            if (getState() != STATE_SCANNING || !mReadyForFrame.getAndSet(false)) {
-                image.close();
-                return;
-            }
-
-            postOnBackgroundThread(new ReaderRunnable(image));
-        }
-    };
-
-    private class ReaderRunnable implements Runnable {
-
-        private final Image mImage;
-
-        private ReaderRunnable(Image image) {
-            mImage = image;
-        }
-
-        @Override
-        public void run() {
-            Log.i(LOG_TAG, "Decoding image...");
-            final BarcodeImageDecoder reader = getCurrentReader();
-            try {
-                final Image.Plane[] planes = mImage.getPlanes();
-                if (planes == null) {
+            try (Image image = reader.acquireLatestImage()) {
+                if (image == null) {
                     return;
                 }
-                for (Image.Plane plane : planes) {
-                    try {
+
+                if (mReadyForFrame.getAndSet(false)) {
+                    final int count;
+                    final byte[][] planeBuffer;
+                    final int[][] strideBuffer;
+                    final Image.Plane[] planes = image.getPlanes();
+                    count = planes.length;
+                    planeBuffer = new byte[count][];
+                    strideBuffer = new int[count][];
+                    for (int i = 0; i < count; i++) {
+                        final Image.Plane plane = planes[i];
                         final ByteBuffer buffer = plane.getBuffer();
-                        final byte[] data = new byte[buffer.remaining()];
-                        buffer.get(data);
-                        final String text = reader.decode(data, plane.getRowStride(), data.length / plane.getRowStride());
-                        postOnMainThread(new SuccessRunnable(text));
-                        Log.i(LOG_TAG, "Decoding successful...");
-                        return;
-                    } catch (NotFoundException | ChecksumException | FormatException e) {
-                        Log.i(LOG_TAG, "Failed to decode...", e);
+                        planeBuffer[i] = new byte[buffer.remaining()];
+                        strideBuffer[i] = new int[]{
+                                plane.getPixelStride(),
+                                plane.getRowStride()
+                        };
+                        buffer.get(planeBuffer[i]);
                     }
+                    postOnProcessingThread(() -> {
+                        for (int i = 0; i < count; i++) {
+                            final byte[] planeData = planeBuffer[i];
+                            final int[] strideData = strideBuffer[i];
+                            final int rowStride = strideData[1];
+                            final BarcodeImageDecoder decoder = getCurrentReader();
+                            try {
+                                final String text = decoder.decode(planeData, rowStride, planeData.length / rowStride);
+                                notifyResult(text);
+                                return;
+                            } catch (NotFoundException | ChecksumException | FormatException ignored) {
+                            } finally {
+                                decoder.reset();
+                            }
+                        }
+                        mReadyForFrame.set(true);
+                    });
                 }
-            } finally {
-                reader.reset();
-                mImage.close();
-                mReadyForFrame.set(true);
             }
         }
-    }
-
-    private class SuccessRunnable implements Runnable {
-
-        private final String mText;
-
-        private SuccessRunnable(String text) {
-            mText = text;
-        }
-
-        @Override
-        public void run() {
-            notifyResult(mText);
-        }
-    }
+    };
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
@@ -253,7 +231,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 final int outputHeight = mOutputSize.getHeight();
 
                 mImageReader = ImageReader.newInstance(width, height, IMAGE_FORMAT, 2);
-                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getBackgroundHandler());
+                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getCameraHandler());
 
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     mTextureView.setAspectRatio(outputWidth, outputHeight);
@@ -304,7 +282,9 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            mCameraManager.openCamera(mCameraId, mStateCallback, getBackgroundHandler());
+
+            //noinspection MissingPermission
+            mCameraManager.openCamera(mCameraId, mStateCallback, getCameraHandler());
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -365,7 +345,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                                 }
 
                                 mPreviewRequest = mPreviewRequestBuilder.build();
-                                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, getBackgroundHandler());
+                                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, getCameraHandler());
                             } catch (CameraAccessException e) {
                                 throw new IllegalStateException("Could not access the camera.", e);
                             }
