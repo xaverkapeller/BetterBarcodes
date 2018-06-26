@@ -1,5 +1,8 @@
 package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper;
 
+import android.media.Image;
+
+import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 import com.google.zxing.ChecksumException;
@@ -14,6 +17,7 @@ import com.google.zxing.NotFoundException;
 @KeepClass
 @KeepClassMembers
 public interface BarcodeImageDecoder {
-    String decode(byte[] data, int width, int height) throws NotFoundException, ChecksumException, FormatException;
-    void reset();
+    void setFormat(@BarcodeFormat int... format);
+    BarcodeResult decode(byte[] data, int width, int height);
+    BarcodeResult decode(Image image);
 }

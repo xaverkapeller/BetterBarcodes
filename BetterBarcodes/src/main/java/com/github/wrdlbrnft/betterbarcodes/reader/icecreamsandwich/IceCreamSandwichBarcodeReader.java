@@ -9,6 +9,7 @@ import android.view.WindowManager;
 
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeResult;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.google.zxing.ReaderException;
 
@@ -53,13 +54,13 @@ public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
         postOnProcessingThread(new Runnable() {
             @Override
             public void run() {
-                final BarcodeImageDecoder reader = getCurrentReader();
-                try {
-                    final String text = reader.decode(data, size.width, size.height);
-                    notifyResult(text);
-                } catch (ReaderException | NullPointerException | ArrayIndexOutOfBoundsException ignored) {
-                } finally {
-                    reader.reset();
+                final BarcodeImageDecoder reader = getReader();
+                if (reader == null) {
+                    return;
+                }
+                final BarcodeResult result = reader.decode(data, size.width, size.height);
+                if(result.isSuccess()) {
+                    notifyResult(result);
                 }
                 postOnCameraThread(() -> {
                     if (getState() == STATE_SCANNING) {
