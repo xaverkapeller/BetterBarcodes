@@ -27,7 +27,7 @@ android {
 }
 
 dependencies {
-    compileOnly 'com.android.support:support-v4:27.0.2'
+    compileOnly 'com.android.support:support-v4:27.1.1'
     compileOnly 'com.github.wrdlbrnft:proguard-annotations-api:0.3.0.11'
 
     implementation 'com.google.zxing:core:3.3.2'

@@ -14,13 +14,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 
-import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoders;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeResult;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
-import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 import com.github.wrdlbrnft.betterbarcodes.utils.handlers.ThreadAwareHandler;
 
 /**
@@ -63,14 +61,10 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private final ThreadAwareHandler mProcessingHandler = new ThreadAwareHandler("BarcodeReaderProcessingThread");
     private BarcodeImageDecoder mReader;
 
-    @BarcodeFormat
-    private int mFormat = BarcodeFormat.QR_CODE;
-
     @State
     private volatile int mState = STATE_STOPPED;
 
     protected BaseBarcodeReader(Context context) {
-        mReader = BarcodeImageDecoders.forFormat(context, BarcodeFormat.QR_CODE);
         mContext = context;
     }
 
@@ -136,6 +130,11 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         mState = STATE_PREVIEWING;
     }
 
+    @Override
+    public void setBarcodeImageDecoder(BarcodeImageDecoder decoder) {
+        mReader = decoder;
+    }
+
     protected abstract void onStartPreview();
     protected abstract void onStartScanning();
     protected abstract void onStopScanning();
@@ -156,8 +155,8 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         return mState;
     }
 
-    protected void notifyResult(String text) {
-        postOnMainThread(() -> mCallback.onResult(text));
+    protected void notifyResult(BarcodeResult result) {
+        postOnMainThread(() -> mCallback.onResult(result));
         stopScanning();
         mCameraHandler.clearCallbacks(null);
     }
@@ -206,18 +205,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         mCallback = callback != null ? callback : DUMMY_READER_CALLBACK;
     }
 
-    @Override
-    public void setFormat(@BarcodeFormat int... format) {
-        mFormat = FormatUtils.combine(format);
-        mReader = BarcodeImageDecoders.forFormat(mContext, format);
-    }
-
-    @Override
-    public int getFormat() {
-        return mFormat;
-    }
-
-    public BarcodeImageDecoder getCurrentReader() {
+    public BarcodeImageDecoder getReader() {
         return mReader;
     }
 

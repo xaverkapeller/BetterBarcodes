@@ -1,4 +1,4 @@
-package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper;
+package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.zxing;
 
 import android.util.Log;
 

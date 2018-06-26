@@ -11,6 +11,7 @@ import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.R;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.BarcodeReaders;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
@@ -28,7 +29,6 @@ import com.github.wrdlbrnft.proguardannotations.KeepSetting;
 public class BarcodeReaderView extends FrameLayout {
 
     private BarcodeReader mBarcodeReader;
-    private int mFormat = BarcodeFormat.QR_CODE;
 
     public BarcodeReaderView(Context context) {
         super(context);
@@ -38,26 +38,15 @@ public class BarcodeReaderView extends FrameLayout {
     public BarcodeReaderView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
-        readAttributes(context, attrs);
     }
 
     public BarcodeReaderView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
-        readAttributes(context, attrs);
     }
 
     private void init(Context context) {
         inflate(context, R.layout.layout_barcode_reader, this);
-    }
-
-    private void readAttributes(Context context, AttributeSet attrs) {
-        final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.BarcodeReaderView);
-        try {
-            mFormat = typedArray.getInt(R.styleable.BarcodeReaderView_format, BarcodeFormat.QR_CODE);
-        } finally {
-            typedArray.recycle();
-        }
     }
 
     @Override
@@ -68,21 +57,14 @@ public class BarcodeReaderView extends FrameLayout {
             return;
         }
         mBarcodeReader = BarcodeReaders.get(getContext(), textureView);
-        mBarcodeReader.setFormat(mFormat);
     }
 
     public void setCallback(BarcodeReader.Callback callback) {
         mBarcodeReader.setCallback(callback);
     }
 
-    public void setFormat(@BarcodeFormat int... formats) {
-        mFormat = FormatUtils.combine(formats);
-        mBarcodeReader.setFormat(formats);
-    }
-
-    @BarcodeFormat
-    public int getFormat() {
-        return mFormat;
+    public void setDecoder(BarcodeImageDecoder decoder) {
+        mBarcodeReader.setBarcodeImageDecoder(decoder);
     }
 
     public void setCameraPermissionHandler(PermissionHandler handler) {
@@ -119,7 +101,6 @@ public class BarcodeReaderView extends FrameLayout {
     public Parcelable onSaveInstanceState() {
         final Parcelable superState = super.onSaveInstanceState();
         final SavedState savedState = new SavedState(superState);
-        savedState.format = mFormat;
         return savedState;
     }
 
@@ -132,7 +113,6 @@ public class BarcodeReaderView extends FrameLayout {
 
         final SavedState savedState = (SavedState) state;
         super.onRestoreInstanceState(savedState.getSuperState());
-        mFormat = savedState.format;
     }
 
     private static class SavedState extends BaseSavedState {

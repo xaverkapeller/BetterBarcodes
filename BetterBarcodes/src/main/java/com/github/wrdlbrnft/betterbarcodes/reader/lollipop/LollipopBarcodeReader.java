@@ -30,6 +30,7 @@ import android.view.WindowManager;
 
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
+import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeResult;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
@@ -102,41 +103,16 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                     return;
                 }
 
+                final BarcodeImageDecoder decoder = getReader();
+                if (decoder == null) {
+                    return;
+                }
+
                 if (mReadyForFrame.getAndSet(false)) {
-                    final int count;
-                    final byte[][] planeBuffer;
-                    final int[][] strideBuffer;
-                    count = planes.length;
-                    planeBuffer = new byte[count][];
-                    strideBuffer = new int[count][];
-                    for (int i = 0; i < count; i++) {
-                        final Image.Plane plane = planes[i];
-                        if(plane == null) {
-                            mReadyForFrame.set(true);
-                            return;
-                        }
-                        final ByteBuffer buffer = plane.getBuffer();
-                        planeBuffer[i] = new byte[buffer.remaining()];
-                        strideBuffer[i] = new int[]{
-                                plane.getPixelStride(),
-                                plane.getRowStride()
-                        };
-                        buffer.get(planeBuffer[i]);
-                    }
                     postOnProcessingThread(() -> {
-                        for (int i = 0; i < count; i++) {
-                            final byte[] planeData = planeBuffer[i];
-                            final int[] strideData = strideBuffer[i];
-                            final int rowStride = strideData[1];
-                            final BarcodeImageDecoder decoder = getCurrentReader();
-                            try {
-                                final String text = decoder.decode(planeData, rowStride, planeData.length / rowStride);
-                                notifyResult(text);
-                                return;
-                            } catch (NotFoundException | ChecksumException | FormatException ignored) {
-                            } finally {
-                                decoder.reset();
-                            }
+                        final BarcodeResult result = decoder.decode(image);
+                        if (result.isSuccess()) {
+                            notifyResult(result);
                         }
                         mReadyForFrame.set(true);
                     });
