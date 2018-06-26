@@ -14,6 +14,6 @@ public interface BarcodeResult {
     }
 
     static BarcodeResult ofError() {
-        return new BarcodeResultImpl(true, null);
+        return new BarcodeResultImpl(false, null);
     }
 }
