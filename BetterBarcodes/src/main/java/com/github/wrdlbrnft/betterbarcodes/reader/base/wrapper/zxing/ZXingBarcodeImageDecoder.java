@@ -35,7 +35,7 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
     private final int mOrientation;
     private Reader mReader;
 
-    protected ZXingBarcodeImageDecoder(int orientation) {
+    public ZXingBarcodeImageDecoder(int orientation) {
         mOrientation = orientation;
         mReader = new MultiFormatZXingReader(FormatUtils.split(BarcodeFormat.QR_CODE));
     }
