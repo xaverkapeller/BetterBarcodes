@@ -99,13 +99,11 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 }
 
                 if (mReadyForFrame.getAndSet(false)) {
-                    postOnProcessingThread(() -> {
-                        try {
-                            submitImageData(image);
-                        } finally {
-                            mReadyForFrame.set(true);
-                        }
-                    });
+                    try {
+                        submitImageData(image);
+                    } finally {
+                        mReadyForFrame.set(true);
+                    }
                 }
             }
         }
@@ -205,7 +203,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 final int outputHeight = mOutputSize.getHeight();
 
                 mImageReader = ImageReader.newInstance(width, height, IMAGE_FORMAT, 2);
-                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getCameraHandler());
+                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, getProcessingHandler());
 
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     mTextureView.setAspectRatio(outputWidth, outputHeight);
