@@ -30,13 +30,8 @@ import android.view.WindowManager;
 
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeResult;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -103,18 +98,13 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                     return;
                 }
 
-                final BarcodeImageDecoder decoder = getReader();
-                if (decoder == null) {
-                    return;
-                }
-
                 if (mReadyForFrame.getAndSet(false)) {
                     postOnProcessingThread(() -> {
-                        final BarcodeResult result = decoder.decode(image);
-                        if (result.isSuccess()) {
-                            notifyResult(result);
+                        try {
+                            submitImageData(image);
+                        } finally {
+                            mReadyForFrame.set(true);
                         }
-                        mReadyForFrame.set(true);
                     });
                 }
             }
@@ -154,6 +144,7 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
     private final Resources mResources;
 
     private Size mOutputSize;
+    private CameraInfo mCameraInfo;
     private CameraCaptureSession mCaptureSession;
     private CameraDevice mCameraDevice;
     private CaptureRequest.Builder mPreviewRequestBuilder;
@@ -222,11 +213,42 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                     mTextureView.setAspectRatio(outputHeight, outputWidth);
                 }
 
+                mCameraInfo = new CameraInfoImpl(characteristics);
                 mCameraId = cameraId;
                 return;
             }
         } catch (CameraAccessException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected CameraInfo getCameraInfo() {
+        return mCameraInfo;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private static class CameraInfoImpl implements CameraInfo {
+
+        private final CameraCharacteristics mCameraCharacteristics;
+
+        private CameraInfoImpl(CameraCharacteristics cameraCharacteristics) {
+            mCameraCharacteristics = cameraCharacteristics;
+        }
+
+        @Override
+        public int getSensorOrientation() {
+            return mCameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+        }
+
+        @Override
+        public boolean isFrontFacing() {
+            return mCameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT;
+        }
+
+        @Override
+        public boolean isBackFacing() {
+            return mCameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK;
         }
     }
 

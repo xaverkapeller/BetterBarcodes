@@ -1,6 +1,8 @@
 package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper;
 
 import android.media.Image;
+import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
@@ -17,7 +19,18 @@ import com.google.zxing.NotFoundException;
 @KeepClass
 @KeepClassMembers
 public interface BarcodeImageDecoder {
+
+    int ORIENTATION_0 = 0x01;
+    int ORIENTATION_90 = 0x02;
+    int ORIENTATION_180 = 0x04;
+    int ORIENTATION_270 = 0x08;
+
+    @IntDef({ORIENTATION_0, ORIENTATION_90, ORIENTATION_180, ORIENTATION_270})
+    @interface Orientation {}
+
     void setFormat(@BarcodeFormat int... format);
-    BarcodeResult decode(byte[] data, int width, int height);
-    BarcodeResult decode(Image image);
+    @NonNull
+    BarcodeResult decode(@Orientation int orientation, byte[] data, int width, int height);
+    @NonNull
+    BarcodeResult decode(@Orientation int orientation, Image image);
 }

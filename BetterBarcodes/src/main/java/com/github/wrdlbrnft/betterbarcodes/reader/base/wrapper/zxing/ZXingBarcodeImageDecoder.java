@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.res.Configuration;
 import android.media.Image;
 import android.os.Build;
+import android.support.annotation.NonNull;
 
 import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
@@ -32,20 +33,19 @@ import java.nio.ByteBuffer;
 @KeepClassMembers(KeepSetting.PUBLIC_MEMBERS)
 public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
 
-    private final int mOrientation;
     private Reader mReader;
 
-    public ZXingBarcodeImageDecoder(int orientation) {
-        mOrientation = orientation;
+    public ZXingBarcodeImageDecoder() {
         mReader = new MultiFormatZXingReader(FormatUtils.split(BarcodeFormat.QR_CODE));
     }
 
+    @NonNull
     @Override
-    public BarcodeResult decode(byte[] data, int width, int height) {
+    public BarcodeResult decode(@Orientation int orientation, byte[] data, int width, int height) {
         try {
-            final PlanarYUVLuminanceSource luminanceSource = mOrientation == Configuration.ORIENTATION_PORTRAIT
-                    ? PlanarYUVLuminanceSource.fromPortrait(data, width, height)
-                    : PlanarYUVLuminanceSource.fromLandscape(data, width, height);
+            final PlanarYUVLuminanceSource luminanceSource = orientation == ORIENTATION_90 || orientation == ORIENTATION_270
+                    ? PlanarYUVLuminanceSource.fromLandscape(data, width, height)
+                    : PlanarYUVLuminanceSource.fromPortrait(data, width, height);
             final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
             final Result result = mReader.decode(bitmap);
             return BarcodeResult.ofSuccess(result.getText());
@@ -61,9 +61,10 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
         mReader = new MultiFormatZXingReader(FormatUtils.split(format));
     }
 
+    @NonNull
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    public BarcodeResult decode(Image image) {
+    public BarcodeResult decode(@Orientation int orientation, Image image) {
         final Image.Plane[] planes = image.getPlanes();
         final int count;
         final byte[][] planeBuffer;
@@ -74,7 +75,7 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
         for (int i = 0; i < count; i++) {
             final Image.Plane plane = planes[i];
             if (plane == null) {
-                return null;
+                return BarcodeResult.ofError();
             }
             final ByteBuffer buffer = plane.getBuffer();
             planeBuffer[i] = new byte[buffer.remaining()];
@@ -88,7 +89,7 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
             final byte[] planeData = planeBuffer[i];
             final int[] strideData = strideBuffer[i];
             final int rowStride = strideData[1];
-            final BarcodeResult result = decode(planeData, rowStride, planeData.length / rowStride);
+            final BarcodeResult result = decode(orientation, planeData, rowStride, planeData.length / rowStride);
             if (result.isSuccess()) {
                 return result;
             }
