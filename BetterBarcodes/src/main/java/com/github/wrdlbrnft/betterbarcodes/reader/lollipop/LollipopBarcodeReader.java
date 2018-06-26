@@ -97,17 +97,24 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 if (image == null) {
                     return;
                 }
+                final Image.Plane[] planes = image.getPlanes();
+                if (planes == null) {
+                    return;
+                }
 
                 if (mReadyForFrame.getAndSet(false)) {
                     final int count;
                     final byte[][] planeBuffer;
                     final int[][] strideBuffer;
-                    final Image.Plane[] planes = image.getPlanes();
                     count = planes.length;
                     planeBuffer = new byte[count][];
                     strideBuffer = new int[count][];
                     for (int i = 0; i < count; i++) {
                         final Image.Plane plane = planes[i];
+                        if(plane == null) {
+                            mReadyForFrame.set(true);
+                            return;
+                        }
                         final ByteBuffer buffer = plane.getBuffer();
                         planeBuffer[i] = new byte[buffer.remaining()];
                         strideBuffer[i] = new int[]{
