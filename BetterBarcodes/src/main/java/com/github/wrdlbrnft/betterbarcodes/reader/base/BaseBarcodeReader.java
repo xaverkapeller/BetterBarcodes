@@ -24,6 +24,8 @@ import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
 import com.github.wrdlbrnft.betterbarcodes.utils.handlers.ThreadAwareHandler;
 
+import java.util.List;
+
 /**
  * Created with Android Studio<br>
  * User: kapeller<br>
@@ -168,8 +170,8 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         return mState;
     }
 
-    private void notifyResult(BarcodeResult result) {
-        postOnMainThread(() -> mCallback.onResult(result));
+    private void notifyResult(List<BarcodeResult> results) {
+        postOnMainThread(() -> mCallback.onResult(results));
         stopScanning();
         mCameraHandler.clearCallbacks(null);
     }
@@ -193,9 +195,9 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
             return;
         }
         final int orientation = getDecoderOrientation();
-        final BarcodeResult result = mReader.decode(orientation, data, width, height);
-        if (result.isSuccess()) {
-            notifyResult(result);
+        final List<BarcodeResult> results = mReader.decode(orientation, data, width, height);
+        if(!results.isEmpty()) {
+            notifyResult(results);
         }
     }
 
@@ -204,9 +206,9 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
             return;
         }
         final int orientation = getDecoderOrientation();
-        final BarcodeResult result = mReader.decode(orientation, image);
-        if (result.isSuccess()) {
-            notifyResult(result);
+        final List<BarcodeResult> results = mReader.decode(orientation, image);
+        if(!results.isEmpty()) {
+            notifyResult(results);
         }
     }
 

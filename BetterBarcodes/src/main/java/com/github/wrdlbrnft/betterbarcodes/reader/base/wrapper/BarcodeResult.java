@@ -6,14 +6,9 @@ import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 @KeepClass
 @KeepClassMembers
 public interface BarcodeResult {
-    boolean isSuccess();
     String getText();
 
-    static BarcodeResult ofSuccess(String text) {
-        return new BarcodeResultImpl(true, text);
-    }
-
-    static BarcodeResult ofError() {
-        return new BarcodeResultImpl(false, null);
+    static BarcodeResult of(String text) {
+        return new BarcodeResultImpl(text);
     }
 }

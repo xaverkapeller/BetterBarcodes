@@ -11,6 +11,8 @@ import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
 import com.google.zxing.NotFoundException;
 
+import java.util.List;
+
 /**
  * Created with Android Studio<br>
  * User: kapeller<br>
@@ -30,7 +32,7 @@ public interface BarcodeImageDecoder {
 
     void setFormat(@BarcodeFormat int... format);
     @NonNull
-    BarcodeResult decode(@Orientation int orientation, byte[] data, int width, int height);
+    List<BarcodeResult> decode(@Orientation int orientation, byte[] data, int width, int height);
     @NonNull
-    BarcodeResult decode(@Orientation int orientation, Image image);
+    List<BarcodeResult> decode(@Orientation int orientation, Image image);
 }

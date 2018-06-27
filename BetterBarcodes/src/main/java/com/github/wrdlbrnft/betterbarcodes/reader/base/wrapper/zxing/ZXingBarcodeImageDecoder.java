@@ -22,6 +22,8 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created with Android Studio<br>
@@ -41,16 +43,11 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
 
     @NonNull
     @Override
-    public BarcodeResult decode(@Orientation int orientation, byte[] data, int width, int height) {
+    public List<BarcodeResult> decode(@Orientation int orientation, byte[] data, int width, int height) {
         try {
-            final PlanarYUVLuminanceSource luminanceSource = orientation == ORIENTATION_90 || orientation == ORIENTATION_270
-                    ? PlanarYUVLuminanceSource.fromLandscape(data, width, height)
-                    : PlanarYUVLuminanceSource.fromPortrait(data, width, height);
-            final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
-            final Result result = mReader.decode(bitmap);
-            return BarcodeResult.ofSuccess(result.getText());
+            return tryDecodeBarcode(orientation, data, width, height);
         } catch (NotFoundException | ChecksumException | FormatException ignored) {
-            return BarcodeResult.ofError();
+            return Collections.emptyList();
         } finally {
             mReader.reset();
         }
@@ -64,7 +61,7 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
     @NonNull
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    public BarcodeResult decode(@Orientation int orientation, Image image) {
+    public List<BarcodeResult> decode(@Orientation int orientation, Image image) {
         final Image.Plane[] planes = image.getPlanes();
         final int count;
         final byte[][] planeBuffer;
@@ -75,7 +72,7 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
         for (int i = 0; i < count; i++) {
             final Image.Plane plane = planes[i];
             if (plane == null) {
-                return BarcodeResult.ofError();
+                return Collections.emptyList();
             }
             final ByteBuffer buffer = plane.getBuffer();
             planeBuffer[i] = new byte[buffer.remaining()];
@@ -89,11 +86,22 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
             final byte[] planeData = planeBuffer[i];
             final int[] strideData = strideBuffer[i];
             final int rowStride = strideData[1];
-            final BarcodeResult result = decode(orientation, planeData, rowStride, planeData.length / rowStride);
-            if (result.isSuccess()) {
-                return result;
+            try {
+                return tryDecodeBarcode(orientation, planeData, rowStride, planeData.length / rowStride);
+            } catch (NotFoundException | ChecksumException | FormatException ignored) {
+
             }
         }
-        return BarcodeResult.ofError();
+        return Collections.emptyList();
+    }
+
+    @NonNull
+    private List<BarcodeResult> tryDecodeBarcode(@Orientation int orientation, byte[] data, int width, int height) throws NotFoundException, ChecksumException, FormatException {
+        final PlanarYUVLuminanceSource luminanceSource = orientation == ORIENTATION_90 || orientation == ORIENTATION_270
+                ? PlanarYUVLuminanceSource.fromLandscape(data, width, height)
+                : PlanarYUVLuminanceSource.fromPortrait(data, width, height);
+        final BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
+        final Result result = mReader.decode(bitmap);
+        return Collections.singletonList(BarcodeResult.of(result.getText()));
     }
 }

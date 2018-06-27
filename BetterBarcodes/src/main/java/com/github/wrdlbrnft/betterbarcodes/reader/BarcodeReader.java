@@ -7,6 +7,8 @@ import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.proguardannotations.KeepClass;
 import com.github.wrdlbrnft.proguardannotations.KeepClassMembers;
 
+import java.util.List;
+
 /**
  * Created with Android Studio<br>
  * User: kapeller<br>
@@ -18,7 +20,7 @@ public interface BarcodeReader {
 
     @KeepClassMembers
     interface Callback {
-        void onResult(BarcodeResult result);
+        void onResult(List<BarcodeResult> results);
     }
 
     void startPreview();

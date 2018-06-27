@@ -2,17 +2,10 @@ package com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper;
 
 class BarcodeResultImpl implements BarcodeResult {
 
-    private final boolean mSuccess;
     private final String mText;
 
-    BarcodeResultImpl(boolean success, String text) {
-        mSuccess = success;
+    BarcodeResultImpl(String text) {
         mText = text;
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return mSuccess;
     }
 
     @Override
