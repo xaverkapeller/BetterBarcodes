@@ -69,37 +69,41 @@ public class ZXingBarcodeImageDecoder implements BarcodeImageDecoder {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public Task<List<BarcodeResult>> decode(@Orientation int orientation, Image image) {
         return mRunner.queue(() -> {
-            final Image.Plane[] planes = image.getPlanes();
-            final int count;
-            final byte[][] planeBuffer;
-            final int[][] strideBuffer;
-            count = planes.length;
-            planeBuffer = new byte[count][];
-            strideBuffer = new int[count][];
-            for (int i = 0; i < count; i++) {
-                final Image.Plane plane = planes[i];
-                if (plane == null) {
-                    throw new TaskExecutionException("Found MediaImage without any valid image planes. Ignoring it...");
+            try {
+                final Image.Plane[] planes = image.getPlanes();
+                final int count;
+                final byte[][] planeBuffer;
+                final int[][] strideBuffer;
+                count = planes.length;
+                planeBuffer = new byte[count][];
+                strideBuffer = new int[count][];
+                for (int i = 0; i < count; i++) {
+                    final Image.Plane plane = planes[i];
+                    if (plane == null) {
+                        throw new TaskExecutionException("Found MediaImage without any valid image planes. Ignoring it...");
+                    }
+                    final ByteBuffer buffer = plane.getBuffer();
+                    planeBuffer[i] = new byte[buffer.remaining()];
+                    strideBuffer[i] = new int[]{
+                            plane.getPixelStride(),
+                            plane.getRowStride()
+                    };
+                    buffer.get(planeBuffer[i]);
                 }
-                final ByteBuffer buffer = plane.getBuffer();
-                planeBuffer[i] = new byte[buffer.remaining()];
-                strideBuffer[i] = new int[]{
-                        plane.getPixelStride(),
-                        plane.getRowStride()
-                };
-                buffer.get(planeBuffer[i]);
-            }
-            for (int i = 0; i < count; i++) {
-                final byte[] planeData = planeBuffer[i];
-                final int[] strideData = strideBuffer[i];
-                final int rowStride = strideData[1];
-                try {
-                    return tryDecodeBarcode(orientation, planeData, rowStride, planeData.length / rowStride);
-                } catch (NotFoundException | ChecksumException | FormatException ignored) {
+                for (int i = 0; i < count; i++) {
+                    final byte[] planeData = planeBuffer[i];
+                    final int[] strideData = strideBuffer[i];
+                    final int rowStride = strideData[1];
+                    try {
+                        return tryDecodeBarcode(orientation, planeData, rowStride, planeData.length / rowStride);
+                    } catch (NotFoundException | ChecksumException | FormatException ignored) {
 
+                    }
                 }
+                return Collections.emptyList();
+            } finally {
+                image.close();
             }
-            return Collections.emptyList();
         });
     }
 
