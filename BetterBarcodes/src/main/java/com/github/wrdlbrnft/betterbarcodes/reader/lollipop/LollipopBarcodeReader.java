@@ -85,30 +85,28 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
         }
     };
 
-    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+    private final Semaphore mSemaphore = new Semaphore(3);
 
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            final Image image = reader.acquireLatestImage();
+    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = reader -> {
+        final Image image = reader.acquireLatestImage();
 
-            if(image == null) {
-                return;
-            }
+        if(image == null) {
+            return;
+        }
 
-            final Image.Plane[] planes = image.getPlanes();
-            if (planes == null) {
-                image.close();
-                return;
-            }
+        final Image.Plane[] planes = image.getPlanes();
+        if (planes == null) {
+            image.close();
+            return;
+        }
 
-            if (mReadyForFrame.getAndSet(false)) {
-                submitImageData(image)
-                        .onResult(result -> mReadyForFrame.set(true))
-                        .onCanceled(() -> mReadyForFrame.set(true))
-                        .onError(throwable -> mReadyForFrame.set(true));
-            } else {
-                image.close();
-            }
+        if (mSemaphore.tryAcquire()) {
+            submitImageData(image)
+                    .onResult(result -> mSemaphore.release())
+                    .onCanceled(mSemaphore::release)
+                    .onError(throwable -> mSemaphore.release());
+        } else {
+            image.close();
         }
     };
 
