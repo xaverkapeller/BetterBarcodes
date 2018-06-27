@@ -29,9 +29,11 @@ android {
 dependencies {
     compileOnly 'com.android.support:support-v4:27.1.1'
     compileOnly 'com.github.wrdlbrnft:proguard-annotations-api:0.3.0.11'
+    compileOnly 'com.google.firebase:firebase-ml-vision:16.0.0'
 
     implementation 'com.google.zxing:core:3.3.2'
     implementation 'com.github.wrdlbrnft:primitive-collections:0.3.0.2'
+    implementation 'com.github.wrdlbrnft:simple-tasks:0.3.0.13'
 
     annotationProcessor 'com.github.wrdlbrnft:proguard-annotations-processor:0.3.0.11'
 }

@@ -100,15 +100,13 @@ public class LollipopBarcodeReader extends BaseBarcodeReader {
                 image.close();
                 return;
             }
-
             if (mReadyForFrame.getAndSet(false)) {
-                postOnProcessingThread(() -> {
-                    try {
-                        submitImageData(image);
-                    } finally {
-                        image.close();
-                        mReadyForFrame.set(true);
-                    }
+                submitImageData(image).onResult(result -> {
+                    mReadyForFrame.set(true);
+                }).onCanceled(() -> {
+                    mReadyForFrame.set(true);
+                }).onError(throwable -> {
+                    mReadyForFrame.set(true);
                 });
             } else {
                 image.close();

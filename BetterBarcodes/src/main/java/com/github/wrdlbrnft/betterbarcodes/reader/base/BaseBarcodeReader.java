@@ -23,6 +23,9 @@ import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeResult;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionHandler;
 import com.github.wrdlbrnft.betterbarcodes.reader.permissions.PermissionRequest;
 import com.github.wrdlbrnft.betterbarcodes.utils.handlers.ThreadAwareHandler;
+import com.github.wrdlbrnft.simpletasks.runners.SimpleTaskRunner;
+import com.github.wrdlbrnft.simpletasks.runners.TaskRunner;
+import com.github.wrdlbrnft.simpletasks.tasks.Task;
 
 import java.util.List;
 
@@ -54,6 +57,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     public static final int STATE_STOPPED = 0x02;
     public static final int STATE_PREVIEWING = 0x04;
     public static final int STATE_SCANNING = 0x08;
+    private Task<List<BarcodeResult>> mDecodeTask;
 
     @IntDef({STATE_PERMISSION_MISSING, STATE_PERMISSION_REQUIRED, STATE_STOPPED, STATE_PREVIEWING, STATE_SCANNING})
     public @interface State {
@@ -65,6 +69,7 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private final WindowManager mWindowManager;
     private final ThreadAwareHandler mCameraHandler = new ThreadAwareHandler("BarcodeReaderCameraThread");
     private final ThreadAwareHandler mProcessingHandler = new ThreadAwareHandler("BarcodeReaderProcessingThread");
+    private final TaskRunner mTaskRunner = new SimpleTaskRunner(mProcessingHandler::post);
     private BarcodeImageDecoder mReader;
 
     public interface CameraInfo {
@@ -190,26 +195,34 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         return convertAngleToDecoderOrientation(relativeAngle);
     }
 
-    protected void submitImageData(byte[] data, int width, int height) {
-        if(mReader == null) {
-            return;
+    protected Task<List<BarcodeResult>> submitImageData(byte[] data, int width, int height) {
+        if (mReader == null) {
+            return Task.withError(null);
         }
+
         final int orientation = getDecoderOrientation();
-        final List<BarcodeResult> results = mReader.decode(orientation, data, width, height);
-        if(!results.isEmpty()) {
-            notifyResult(results);
-        }
+        return mReader.decode(orientation, data, width, height)
+                .onResult(results -> {
+                    if (!results.isEmpty() && mState >= STATE_SCANNING) {
+                        notifyResult(results);
+                    }
+                });
     }
 
-    protected void submitImageData(Image image) {
-        if(mReader == null) {
-            return;
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    protected Task<List<BarcodeResult>> submitImageData(Image image) {
+        if (mReader == null) {
+            image.close();
+            return Task.withError(null);
         }
+
         final int orientation = getDecoderOrientation();
-        final List<BarcodeResult> results = mReader.decode(orientation, image);
-        if(!results.isEmpty()) {
-            notifyResult(results);
-        }
+        return mReader.decode(orientation, image)
+                .onResult(results -> {
+                    if (!results.isEmpty()) {
+                        notifyResult(results);
+                    }
+                });
     }
 
     protected Handler getCameraHandler() {
