@@ -8,10 +8,10 @@ import android.view.TextureView;
 import android.view.WindowManager;
 
 import com.github.wrdlbrnft.betterbarcodes.reader.base.BaseBarcodeReader;
-import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
 import com.github.wrdlbrnft.betterbarcodes.views.AspectRatioTextureView;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created with Android Studio<br>
@@ -46,13 +46,20 @@ public class IceCreamSandwichBarcodeReader extends BaseBarcodeReader {
         }
     };
 
+    private final AtomicBoolean mReadyForFrame = new AtomicBoolean(true);
+
     private final Camera.PreviewCallback mPreviewCallback = (data, camera) -> {
         final Camera.Parameters parameters = camera.getParameters();
         final Camera.Size size = parameters.getPreviewSize();
         postOnProcessingThread(new Runnable() {
             @Override
             public void run() {
-                submitImageData(data, size.width, size.height);
+                if (mReadyForFrame.getAndSet(false)) {
+                    submitImageData(data, size.width, size.height)
+                            .onResult(result -> mReadyForFrame.set(true))
+                            .onCanceled(() -> mReadyForFrame.set(true))
+                            .onError(throwable -> mReadyForFrame.set(true));
+                }
                 postOnCameraThread(() -> {
                     if (getState() == STATE_SCANNING) {
                         mCamera.setOneShotPreviewCallback(mPreviewCallback);

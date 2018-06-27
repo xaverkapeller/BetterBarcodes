@@ -57,7 +57,6 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     public static final int STATE_STOPPED = 0x02;
     public static final int STATE_PREVIEWING = 0x04;
     public static final int STATE_SCANNING = 0x08;
-    private Task<List<BarcodeResult>> mDecodeTask;
 
     @IntDef({STATE_PERMISSION_MISSING, STATE_PERMISSION_REQUIRED, STATE_STOPPED, STATE_PREVIEWING, STATE_SCANNING})
     public @interface State {
@@ -69,7 +68,6 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
     private final WindowManager mWindowManager;
     private final ThreadAwareHandler mCameraHandler = new ThreadAwareHandler("BarcodeReaderCameraThread");
     private final ThreadAwareHandler mProcessingHandler = new ThreadAwareHandler("BarcodeReaderProcessingThread");
-    private final TaskRunner mTaskRunner = new SimpleTaskRunner(mProcessingHandler::post);
     private BarcodeImageDecoder mReader;
 
     public interface CameraInfo {

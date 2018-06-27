@@ -11,6 +11,7 @@ import com.github.wrdlbrnft.betterbarcodes.BarcodeFormat;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeImageDecoder;
 import com.github.wrdlbrnft.betterbarcodes.reader.base.wrapper.BarcodeResult;
 import com.github.wrdlbrnft.betterbarcodes.utils.FormatUtils;
+import com.github.wrdlbrnft.simpletasks.runners.TaskRunner;
 import com.github.wrdlbrnft.simpletasks.tasks.StubTask;
 import com.github.wrdlbrnft.simpletasks.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -32,10 +33,13 @@ public class MLKitBarcodeImageDecoder implements BarcodeImageDecoder {
 
     private static final String TAG = "MLKitBarcodeImageDecode";
 
+    private final TaskRunner mRunner;
+
     private FirebaseVisionBarcodeDetector mDetector;
     private int mFormat;
 
-    public MLKitBarcodeImageDecoder() {
+    public MLKitBarcodeImageDecoder(TaskRunner runner) {
+        mRunner = runner;
         mFormat = FirebaseVisionBarcode.FORMAT_ALL_FORMATS;
         final FirebaseVisionBarcodeDetectorOptions options = new FirebaseVisionBarcodeDetectorOptions.Builder()
                 .setBarcodeFormats(mFormat)
@@ -72,14 +76,17 @@ public class MLKitBarcodeImageDecoder implements BarcodeImageDecoder {
     @NonNull
     @Override
     public Task<List<BarcodeResult>> decode(@Orientation int orientation, byte[] data, int width, int height) {
-        final FirebaseVisionImageMetadata metadata = new FirebaseVisionImageMetadata.Builder()
-                .setWidth(width)
-                .setHeight(height)
-                .setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
-                .setRotation(convertToFirebaseRotation(orientation))
-                .build();
-        final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromByteArray(data, metadata);
-        return decode(firebaseVisionImage);
+        return mRunner.queue(() -> {
+            final FirebaseVisionImageMetadata metadata = new FirebaseVisionImageMetadata.Builder()
+                    .setWidth(width)
+                    .setHeight(height)
+                    .setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
+                    .setRotation(convertToFirebaseRotation(orientation))
+                    .build();
+            final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromByteArray(data, metadata);
+            final Task<List<BarcodeResult>> decoderTask = decode(firebaseVisionImage);
+            return decoderTask.await();
+        });
     }
 
     private Task<List<BarcodeResult>> decode(FirebaseVisionImage firebaseVisionImage) {
@@ -111,13 +118,16 @@ public class MLKitBarcodeImageDecoder implements BarcodeImageDecoder {
     @NonNull
     @Override
     public Task<List<BarcodeResult>> decode(@Orientation int orientation, Image image) {
-        try {
-            final int rotation = convertToFirebaseRotation(orientation);
-            final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromMediaImage(image, rotation);
-            return decode(firebaseVisionImage);
-        } finally {
-            image.close();
-        }
+        return mRunner.queue(() -> {
+            try {
+                final int rotation = convertToFirebaseRotation(orientation);
+                final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromMediaImage(image, rotation);
+                final Task<List<BarcodeResult>> decoderTask = decode(firebaseVisionImage);
+                return decoderTask.await();
+            } finally {
+                image.close();
+            }
+        });
     }
 
     private static int convertToFirebaseRotation(@Orientation int orientation) {
