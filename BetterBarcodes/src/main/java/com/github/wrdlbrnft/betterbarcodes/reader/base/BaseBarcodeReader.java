@@ -173,10 +173,12 @@ public abstract class BaseBarcodeReader implements BarcodeReader {
         return mState;
     }
 
-    private void notifyResult(List<BarcodeResult> results) {
-        postOnMainThread(() -> mCallback.onResult(results));
-        stopScanning();
-        mCameraHandler.clearCallbacks(null);
+    private synchronized void notifyResult(List<BarcodeResult> results) {
+        if(mState >= STATE_SCANNING) {
+            stopScanning();
+            postOnMainThread(() -> mCallback.onResult(results));
+            mCameraHandler.clearCallbacks(null);
+        }
     }
 
     @BarcodeImageDecoder.Orientation
